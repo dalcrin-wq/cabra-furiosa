@@ -1072,7 +1072,7 @@ function migrate(o) {
 /* ── El plan en el tiempo ── */
 function planWeekOf(k) {                       // semana del plan (1-52, se recicla cada año) y vuelta
   if (!S.startDate) return { w: 1, cycle: 1, pre: true, raw: 0 };
-  const raw = Math.floor(daysBetween(S.startDate, k) / 7) + 1;
+  const raw = Math.floor(daysBetween(mondayOf(S.startDate), k) / 7) + 1;   // semanas de calendario (lunes-domingo): todo el día cuenta la misma semana
   if (raw < 1) return { w: 1, cycle: 1, pre: true, raw };
   return { w: ((raw - 1) % 52) + 1, cycle: Math.floor((raw - 1) / 52) + 1, pre: false, raw };
 }
