@@ -578,12 +578,12 @@ BP:{name:"Fuerza B — PARQUE 🚒 (banca + dominadas)",type:"f",ex:[
  ["🚒 Día de guardia: el día del V-shape también sale de guardia. Calentamiento: 5' remo suave + 10 escapulares","—"],
  ["Press banca (parque)","4×6-8",120],
  ["Dominadas","4×máx",90],
- ["Press hombros con mancuernas","3×8-10",75],
- ["Remo con mancuerna (a una mano)","3×10",75],
- ["Elevaciones laterales (mancuernas)","3×12-15",60],
- ["Curl + extensión tríceps (mancuernas)","3×10-12",60],
+ ["Press hombros con mancuernas (las de 22 kg)","3×8-12",75],
+ ["Remo en máquina (polea, agarre neutro)","3×8-12",75],
+ ["Elevaciones laterales en máquina o polea","3×12-15",60],
+ ["Curl con mancuernas + extensión de tríceps en polea","3×10-12",60],
  ["💥 FINISHER · Remo 8×(1' fuerte / 1' suave)","16'"]],
- note:"Pecho y espalda como en casa, con la banca y la barra de dominadas del parque — el tema del día se respeta esté donde esté el cuerpo. El remo del parque es de calidad: úsalo como finisher y como termómetro — si las calorías por minuto suben mes a mes, vas bien."},
+ note:"Pecho y espalda como en casa, con la banca y la barra de dominadas del parque — el tema del día se respeta esté donde esté el cuerpo. Con lo que hay en el parque: banca y fondos para el pecho, el press con las de 22 kg (como no puedes subir peso, progresa en reps hasta 12), remo en máquina cargado para la espalda, y laterales y tríceps en polea. El remo ergómetro del parque es de calidad: úsalo como finisher y como termómetro — si las calorías por minuto suben mes a mes, vas bien."},
 GP:{name:"Fuerza C — PARQUE 🚒 (glúteo + pierna)",type:"f",ex:[
  ["🚒 Día de guardia. Calentamiento: 5' remo suave + 2 rondas (10 puente glúteo + 10 plancha)","—"],
  ["🅰️ PESADO EN FRESCURA — el básico del día, descansos completos.","—"],
@@ -773,13 +773,13 @@ const COMPRA_EL=[
 /* ══════════════ PERFILES ══════════════ */
 const EXSWAP_DB=[
  ["Pecho",/press banca|inclinado|fondos|flexiones|press de suelo|aperturas/i,[
-  ["Press banca (barra)"],["Press inclinado con mancuernas"],["Press de suelo con mancuernas"],["Fondos en paralelas",1],["Flexiones",1],["Flexiones declinadas (pies en banco)",1],["Flexiones con chaleco o mochila",1],["Aperturas con mancuernas"]]],
+  ["Press banca (barra)",1],["Press inclinado con mancuernas"],["Press de suelo con mancuernas"],["Fondos en paralelas",1],["Flexiones",1],["Flexiones declinadas (pies en banco)",1],["Flexiones con chaleco o mochila",1],["Aperturas con mancuernas"]]],
  ["Espalda",/dominada|remo|jal[oó]n|renegado|australiana/i,[
-  ["Dominadas",1],["Dominadas australianas en barra baja",1],["Remo con barra"],["Remo con mancuerna a una mano"],["Remo renegado (mancuernas)"],["Remo con kettlebell a una mano"],["Remo inverso bajo la mesa",1]]],
+  ["Dominadas",1],["Dominadas australianas en barra baja",1],["Remo en máquina (polea, agarre neutro)",1],["Remo con barra"],["Remo con mancuerna a una mano"],["Remo renegado (mancuernas)"],["Remo con kettlebell a una mano"],["Remo inverso bajo la mesa",1]]],
  ["Hombro",/militar|press (de )?hombros?|laterales|p[aá]jaros|push press|arnold|pike/i,[
-  ["Press militar (barra)"],["Press de hombros con mancuernas"],["Press inclinado con barra"],["Press inclinado con mancuernas"],["Push press con mancuernas"],["Elevaciones laterales"],["Pájaros (posteriores)"],["Pike push-ups",1],["Press Arnold"]]],
+  ["Press militar (barra)"],["Press de hombros con mancuernas",1],["Press inclinado con barra"],["Press inclinado con mancuernas"],["Push press con mancuernas"],["Elevaciones laterales"],["Elevaciones laterales en máquina o polea",1],["Pájaros (posteriores)"],["Pike push-ups",1],["Press Arnold"]]],
  ["Brazo",/curl|tr[ií]ceps|extensi[oó]n|martillo|diamante/i,[
-  ["Curl mancuernas alterno"],["Curl con barra"],["Curl martillo"],["Curl en barra baja del parque",1],["Extensión de tríceps sobre cabeza"],["Fondos entre bancos",1],["Flexiones diamante",1]]],
+  ["Curl mancuernas alterno"],["Curl con barra"],["Curl martillo"],["Curl en barra baja del parque",1],["Extensión de tríceps sobre cabeza"],["Extensión de tríceps en polea",1],["Fondos entre bancos",1],["Flexiones diamante",1]]],
  ["Cuádriceps",/sentadilla|front squat|b[uú]lgara|zancada|goblet|step/i,[
   ["Sentadilla trasera (barra)"],["Front squat (barra)"],["Goblet squat (KB o mancuerna)"],["Zancadas alternas",1],["Búlgaras (pie en banco)",1],["Step-ups al cajón o banco",1],["Sentadilla con salto",1]]],
  ["Glúteo y femoral",/hip thrust|peso muerto|rumano|n[oó]rdico|curl femoral|puente de gl[uú]teo|buenos d[ií]as|swing/i,[
@@ -956,6 +956,7 @@ const CAT = [
   ["pull_w", "Dominada lastrada", /dominada lastrada/i, "w", "Espalda", ["Brazo"], 2.5],
   ["pull_n", "Dominada neutra", /dominadas? (neutra|agarre neutro)|jal[oó]n/i, "bw", "Espalda", ["Brazo"], 0],
   ["pullup", "Dominadas", /dominada/i, "bw", "Espalda", ["Brazo"], 0],
+  ["row_m", "Remo en máquina", /remo en (m[aá]quina|polea)|remo sentado/i, "w", "Espalda", ["Brazo"], 2.5],
   ["row_bb", "Remo con barra", /remo con barra/i, "w", "Espalda", ["Brazo"], 2.5],
   ["row_db", "Remo con mancuerna", /remo con mancuerna/i, "w", "Espalda", ["Brazo"], 2],
   ["row_kb", "Remo con kettlebell", /remo con kettlebell/i, "w", "Espalda", ["Brazo"], 4],
@@ -965,8 +966,10 @@ const CAT = [
   ["ohp", "Press militar", /press militar/i, "w", "Hombro", ["Brazo"], 2.5],
   ["pushpress", "Push press", /push press/i, "w", "Hombro", ["Cuádriceps"], 2],
   ["arnold", "Press Arnold", /arnold/i, "w", "Hombro", [], 2],
+  ["lat_m", "Elevaciones laterales en máquina", /laterales en (m[aá]quina|polea)/i, "w", "Hombro", [], 2.5],
   ["lateral", "Elevaciones laterales", /laterales/i, "w", "Hombro", [], 1],
   ["rear", "Pájaros", /p[aá]jaros/i, "w", "Hombro", ["Espalda"], 1],
+  ["tri_c", "Extensión de tríceps en polea", /tr[ií]ceps en polea/i, "w", "Brazo", [], 2.5],
   ["triceps", "Extensión de tríceps", /tr[ií]ceps|extensi[oó]n/i, "w", "Brazo", [], 1],
   ["curl", "Curl de bíceps", /^curl/i, "w", "Brazo", [], 1],
   ["pallof", "Pallof press", /pallof/i, "bw", "Core", [], 0],
@@ -1215,7 +1218,7 @@ function volumeTopUp(key, ex, dl) {
   }
   if (key === "BP") {                              // guardia: que el pecho no se quede en un solo ejercicio
     const i = ex.findIndex(e => e[2] && /^Press banca/i.test(e[0]));
-    if (i >= 0) ex.splice(i + 1, 0, ["Press inclinado con mancuernas", dl ? "2×10" : "3×8-12 · RIR 1-2", 75]);
+    if (i >= 0) ex.splice(i + 1, 0, ["Fondos en paralelas (tronco hacia delante: más pecho)", dl ? "2×8 · cómodos" : "3×8-12 · RIR 1-2", 75]);
   }
   return ex;
 }
