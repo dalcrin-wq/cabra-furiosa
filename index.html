@@ -498,7 +498,7 @@ const PH_EL=[
 {id:2,name:"FASE 2 · CONSTRUCCIÓN",weeks:[13,26],color:"#ff6b35",
  goal:"Hipertrofia: poner carne en el armazón. Más volumen, más series, comer proteína como si fuera tu oficio.",
  fuerza:"4 series por básico, RIR 1-2. Accesorios al fallo técnico (cuando la forma se rompe, se acabó).",
- detalle:"Un rodaje se convierte en fartlek. Las cuestas pasan a 10 repeticiones. Si compras la airbike, entra en el WOD. Rotación de básicos: semanas impares, front squat (día A) y press inclinado (día B); semanas pares, peso muerto pesado el día C (sin hip thrust cargado ese día). Semana 26: descarga y test.",
+ detalle:"Un rodaje se convierte en fartlek. Las cuestas pasan a 10 repeticiones. Si compras la airbike, entra en el WOD. Rotación de básicos: semanas impares, front squat (día A, solo si lo activas en Progreso › Datos) y press inclinado (día B); semanas pares, peso muerto pesado el día C (sin hip thrust cargado ese día). Semana 26: descarga y test.",
  progresion:[["Sem 13-17","4×8 básicos","Rodaje + fartlek"],["Sem 18-22","4×6-8, más peso","Fartlek 10×1'/2'"],["Sem 23-25","Pico de volumen","Cuestas ×10"],["Sem 26","Descarga + test","Suave"]]},
 {id:3,name:"FASE 3 · POTENCIA",weeks:[27,40],color:"#e11d48",
  goal:"Convertir el músculo nuevo en fuerza bruta y potencia. Pesos serios, pocas reps, descansos largos.",
@@ -1117,7 +1117,7 @@ function sessNow(key, wk) {
   const w = wk, ph = phaseOf(w).id, par = w % 2 === 0;
   let v = null;
   let ex = T.ex.map(r => {
-    if (key === "A" && ph === 2 && !par && /^Sentadilla/.test(r[0])) { v = "<b>Front squat</b>: más cuádriceps y core, mismo patrón. Empieza con ~10% menos que tu sentadilla trasera."; return ["Front squat (barra, rack)", "4×6-8 · RPE 8", 150]; }
+    if (key === "A" && ph === 2 && !par && S.frontOK && /^Sentadilla/.test(r[0])) { v = "<b>Front squat</b>: más cuádriceps y core, mismo patrón. Empieza con ~10% menos que tu sentadilla trasera."; return ["Front squat (barra, rack)", "4×6-8 · RPE 8", 150]; }
     if (key === "B" && (ph === 2 || ph === 4) && !par && /^Press banca$/.test(r[0])) { v = "<b>Press inclinado con mancuernas</b>: pecho alto y hombro, el volumen que más se nota con camiseta."; return ["Press inclinado con mancuernas (banco ~30°)", "4×6-8 · RPE 8", 150]; }
     if (key === "G" && ph === 2 && par && /^Hip thrust/.test(r[0])) { v = "<b>Peso muerto</b>: hoy es la bisagra pesada — por eso NO hay hip thrust cargado. Dos bisagras duras el mismo día es pedir una lesión, no un culo mejor."; return ["Peso muerto (barra)", "4×5-6 · RPE 8", 180]; }
     if (key === "G" && ph === 3 && /^Hip thrust/.test(r[0])) { v = "<b>Peso muerto protagonista</b> de la fase de potencia; el hip thrust baja a volumen moderado."; return ["Peso muerto (barra)", "5×3-5 · descansos 3'", 180]; }
@@ -1510,7 +1510,7 @@ function suggestExtraPair(key, dk) {
   const inSess = new Set(exItems(buildDay(dk)).map(i => i.name));
   return [cand[i1], cand[i2]].map(g => {
     const grp = EXSWAP_DB.find(x => x[0] === g.n); if (!grp) return null;
-    let list = grp[2].filter(x => !inSess.has(x[0]) && (!minMat || x[1])); if (!list.length) list = grp[2];
+    let list = grp[2].filter(x => !inSess.has(x[0]) && (!minMat || x[1]) && (S.frontOK || !/front squat/i.test(x[0]))); if (!list.length) list = grp[2];
     return list[Math.floor(rnd() * list.length)][0];
   }).filter(Boolean);
 }
@@ -1531,7 +1531,7 @@ function rescuePlan(dk, roll) {
     if (!defs.length) break;
     const { m, d } = defs[0];
     const grp = EXSWAP_DB.find(x => x[0] === m);
-    const list = grp ? grp[2].filter(x => !RESCUE_EXCL.test(x[0]) && !out.some(o => o.n === x[0]) && (!minMat || x[1]) && (exInfo(x[0]) || {}).m === m) : [];
+    const list = grp ? grp[2].filter(x => !RESCUE_EXCL.test(x[0]) && (S.frontOK || !/front squat/i.test(x[0])) && !out.some(o => o.n === x[0]) && (!minMat || x[1]) && (exInfo(x[0]) || {}).m === m) : [];
     if (!list.length) { skip.add(m); continue; }
     const pick = list[Math.floor(rnd() * Math.min(3, list.length))][0], c = exInfo(pick);
     const sets = Math.max(2, Math.min(4, CAP_M - (perM[m] || 0), CAP_T - total, Math.ceil(d / W)));
@@ -2171,6 +2171,8 @@ function pDatos() {
   <div class="panel"><h2>Zona a vigilar</h2><p class="small mut">Lo que estás rehabilitando o te suele avisar. Al terminar cada sesión puntúas su dolor y a la mañana siguiente te pregunto cómo amanece.</p>
     <div class="chk" style="margin-top:10px"><input id="zoneIn" class="inp" value="${esc(S.zone || "")}" placeholder="p. ej. rodilla izquierda, tendón de Aquiles…"><button class="btn sm" data-act="setZone">Guardar</button></div></div>
   <details class="fold"><summary>El plan de un año</summary><div>${PH_EL.map(p => `<div style="margin-bottom:14px"><div style="font-weight:700;color:${p.color}">${esc(p.name)} <span class="mut small">· sem. ${p.weeks[0]}–${p.weeks[1]}</span></div><p class="small mut" style="margin-top:4px">${esc(p.goal)} ${esc(p.detalle)}</p></div>`).join("")}</div></details>
+  <div class="panel"><h2>Front squat</h2><p class="small mut">En la fase 2, las semanas impares cambian la sentadilla del lunes por front squat. Pide muñecas y hombros móviles: actívalo cuando ya lo tengas por la mano.</p>
+    <button class="btn ${S.frontOK ? "" : "line"}" data-act="frontTog" style="margin-top:10px">${S.frontOK ? "✓ En la rotación · tocar para quitarlo" : "Fuera de la rotación · tocar para activarlo"}</button></div>
   <details class="fold"><summary>Fecha de inicio del plan</summary><div><p class="small mut">Empezaste el ${S.startDate ? fmtDay(S.startDate) + " de " + S.startDate.slice(0, 4) : "— (sin empezar)"}. Cambiarla recoloca las semanas y las fases; tus registros no se tocan.</p><button class="btn line" data-act="startPick" style="margin-top:10px">Cambiar fecha de inicio</button></div></details>
   <details class="fold"><summary>Pantalla siempre encendida</summary><div><p class="small mut">El punto de la cabecera indica si la pantalla se mantendrá encendida. Abierta como archivo local, el navegador no ofrece el bloqueo oficial y se usa un vídeo mudo de un píxel como truco. Si la abres desde una dirección https (por ejemplo, publicada como artefacto de Claude), funciona el bloqueo de verdad.</p></div></details>
   <details class="fold"><summary>Modo app</summary><div><p class="small mut">Navegador › Compartir › «Añadir a pantalla de inicio». Se abre a pantalla completa, sin barras, y conserva tus datos.</p></div></details>
@@ -2872,6 +2874,7 @@ const ACT = {
   openReview: () => { progTab = "revision"; view = "progreso"; render(); },
   reviewOk: d => { S.reviews[d.k] = today(); save(); render({ keepScroll: true }); toast("Revisión archivada. Nos vemos en cuatro semanas."); },
   quickW: () => { const n = parseFloat(String($("qW").value).replace(",", ".")); if (!(n >= 30 && n <= 250)) { toast("Peso fuera de rango: revisa el dato"); return; } const i = S.body.findIndex(b => b.d === today()); if (i >= 0) S.body[i].w = n; else { S.body.push({ d: today(), w: n }); S.body.sort((a, b) => a.d < b.d ? -1 : 1); } save(); render({ keepScroll: true }); toast("Anotado: " + fmtNum(n) + " kg. La báscula opina; la tendencia decide."); },
+  frontTog: () => { S.frontOK = !S.frontOK; save(); render({ keepScroll: true }); toast(S.frontOK ? "Front squat dentro: semanas impares de la fase 2" : "Front squat fuera: sentadilla de siempre"); },
   setZone: () => { S.zone = ($("zoneIn").value || "").trim(); save(); toast(S.zone ? "Vigilando: " + S.zone : "Sin zona definida"); },
   goal: d => { S.goal = { rate: +d.r }; save(); render({ keepScroll: true }); },
   protTog: () => { const t = today(); S.food[t] = Object.assign({}, S.food[t], { p: S.food[t] && S.food[t].p ? 0 : 1 }); save(); render({ keepScroll: true }); },
