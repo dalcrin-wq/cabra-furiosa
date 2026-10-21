@@ -553,7 +553,6 @@ G:{name:"Fuerza C — Bisagra y Glúteo",type:"f",ex:[
  ["Sentadilla búlgara (mancuernas)","3×8/lado",75],
  ["Dominada neutra o jalón en torre","3×8-10 · RPE 9",75],
  ["Curl femoral nórdico asistido (lento)","3×6-8 · a fallo técnico",75],
- ["Elevaciones laterales (ligeras, la guinda V)","2×15",45],
  ["🅲 WOD FINAL — elige uno:","—"],
  ["Opción 1 · Tabata 8×(20\"/10\"): goblet squat 12 kg / flexiones","4 min"],
  ["Opción 2 · AMRAP 8': 10 swings 16 kg + 20 saltos cuerda + 6 burpees","8 min"],
@@ -569,7 +568,7 @@ AP:{name:"Fuerza A — PARQUE 🚒 (pierna + empuje)",type:"f",ex:[
  ["Goblet squat PESADO (la mancuerna más grande que haya)","4×8-10",120],
  ["Zancadas con mancuernas","3×10/pierna",90],
  ["Peso muerto rumano a una pierna con mancuerna (lento)","3×8/lado",75],
- ["Fondos (silla romana o entre bancos)","3×máx-2",75],
+ ["Flexiones con pies elevados (en el banco; lastre en mochila si pasas de 20)","3×máx-2",75],
  ["Pájaros (deltoide posterior, mancuernas ligeras)","3×12-15",60],
  ["Russian twists con balón medicinal","3×20",45],
  ["💥 FINISHER · Airbike 10×(20\" fuerte / 40\" suave)","6'40\""]],
@@ -581,7 +580,6 @@ BP:{name:"Fuerza B — PARQUE 🚒 (banca + dominadas)",type:"f",ex:[
  ["Press hombros con mancuernas (las de 22 kg)","3×8-12",75],
  ["Remo en máquina (polea, agarre neutro)","3×8-12",75],
  ["Elevaciones laterales en máquina o polea","3×12-15",60],
- ["Curl con mancuernas + extensión de tríceps en polea","3×10-12",60],
  ["💥 FINISHER · Remo 8×(1' fuerte / 1' suave)","16'"]],
  note:"Pecho y espalda como en casa, con la banca y la barra de dominadas del parque — el tema del día se respeta esté donde esté el cuerpo. Con lo que hay en el parque: banca y fondos para el pecho, el press con las de 22 kg (como no puedes subir peso, progresa en reps hasta 12), remo en máquina cargado para la espalda, y laterales y tríceps en polea. El remo ergómetro del parque es de calidad: úsalo como finisher y como termómetro — si las calorías por minuto suben mes a mes, vas bien."},
 GP:{name:"Fuerza C — PARQUE 🚒 (glúteo + pierna)",type:"f",ex:[
@@ -773,7 +771,7 @@ const COMPRA_EL=[
 /* ══════════════ PERFILES ══════════════ */
 const EXSWAP_DB=[
  ["Pecho",/press banca|inclinado|fondos|flexiones|press de suelo|aperturas/i,[
-  ["Press banca (barra)",1],["Press inclinado con mancuernas"],["Press de suelo con mancuernas"],["Fondos en paralelas",1],["Flexiones",1],["Flexiones agarre cerrado (manos bajo los hombros, codos pegados)",1],["Flexiones declinadas (pies en banco)",1],["Flexiones con chaleco o mochila",1],["Aperturas con mancuernas"]]],
+  ["Press banca (barra)",1],["Press inclinado con mancuernas"],["Press de suelo con mancuernas"],["Fondos en paralelas"],["Flexiones",1],["Flexiones agarre cerrado (manos bajo los hombros, codos pegados)",1],["Flexiones declinadas (pies en banco)",1],["Flexiones con chaleco o mochila",1],["Aperturas con mancuernas"]]],
  ["Espalda",/dominada|remo|jal[oó]n|renegado|australiana/i,[
   ["Dominadas",1],["Dominadas australianas en barra baja",1],["Remo en máquina (polea, agarre neutro)",1],["Remo con barra"],["Remo con mancuerna a una mano"],["Remo renegado (mancuernas)"],["Remo con kettlebell a una mano"],["Remo inverso bajo la mesa",1]]],
  ["Hombro",/militar|press (de )?hombros?|laterales|p[aá]jaros|push press|arnold|pike/i,[
@@ -1121,10 +1119,9 @@ function sessNow(key, wk) {
     if (key === "A" && ph === 2 && !par && S.frontOK && /^Sentadilla/.test(r[0])) { v = "<b>Front squat</b>: más cuádriceps y core, mismo patrón. Empieza con ~10% menos que tu sentadilla trasera."; return ["Front squat (barra, rack)", "4×6-8 · RPE 8", 150]; }
     if (key === "B" && (ph === 2 || ph === 4) && !par && /^Press banca$/.test(r[0])) { v = "<b>Press inclinado con mancuernas</b>: pecho alto y hombro, el volumen que más se nota con camiseta."; return ["Press inclinado con mancuernas (banco ~30°)", "4×6-8 · RPE 8", 150]; }
     if (key === "G" && ph === 2 && par && /^Hip thrust/.test(r[0])) { v = "<b>Peso muerto</b>: hoy es la bisagra pesada — por eso NO hay hip thrust cargado. Dos bisagras duras el mismo día es pedir una lesión, no un culo mejor."; return ["Peso muerto (barra)", "4×5-6 · RPE 8", 180]; }
-    if (key === "G" && ph === 3 && /^Hip thrust/.test(r[0])) { v = "<b>Peso muerto protagonista</b> de la fase de potencia; el hip thrust baja a volumen moderado."; return ["Peso muerto (barra)", "5×3-5 · descansos 3'", 180]; }
+    if (key === "G" && ph === 3 && /^Hip thrust/.test(r[0])) { v = "<b>Peso muerto protagonista</b> de la fase de potencia. El hip thrust descansa: con los sprints a tope, la cadena posterior ya tiene trabajo de sobra."; return ["Peso muerto (barra)", "5×3-5 · descansos 3'", 180]; }
     return r;
   });
-  if (key === "G" && ph === 3) { const i = ex.findIndex(r => r[0] === "Peso muerto (barra)"); if (i >= 0) ex = ex.slice(0, i + 1).concat([["Hip thrust (barra, banco)", "3×8 · RPE 7", 90]], ex.slice(i + 1)); }
   return v ? Object.assign({}, T, { ex, pre: "Variante de esta semana: " + v }) : T;
 }
 function adaptEx(T, mode) {
@@ -1219,7 +1216,7 @@ function volumeTopUp(key, ex, dl) {
   }
   if (key === "BP") {                              // guardia: que el pecho no se quede en un solo ejercicio
     const i = ex.findIndex(e => e[2] && /^Press banca/i.test(e[0]));
-    if (i >= 0) ex.splice(i + 1, 0, ["Fondos en paralelas (tronco hacia delante: más pecho)", dl ? "2×8 · cómodos" : "3×8-12 · RIR 1-2", 75]);
+    if (i >= 0) ex.splice(i + 1, 0, ["Flexiones con pies elevados (en el banco; lastre en mochila si pasas de 20)", dl ? "2×10 · cómodas" : "3×máx-2", 75]);
   }
   return ex;
 }
@@ -1258,13 +1255,13 @@ function weekShape(key, ex, mode, dl) {
   // …el brazo del día B entra antes del cierre en el día G…
   if (key === "G" || key === "GP") {
     const src = SE_EL.B.ex, b = segOf(src, /BRAZO DIRECTO/);
-    if (b) { const at = segOf(ex, ss); const blk = [["💪 BRAZO DIRECTO — viene del miércoles, que ahora es día de WOD. Suelto, a tu ritmo:", "—"], ...(key === "GP" ? [["Curl + extensión tríceps (mancuernas)", "3×10-12", 60]] : src.slice(b[0] + 1, b[1]))]; ex.splice(at ? at[0] : ex.length, 0, ...blk); }
+    if (b) { const at = segOf(ex, ss); const blk = [["💪 BRAZO DIRECTO — viene del miércoles, que ahora es día de WOD. Suelto, a tu ritmo:", "—"], ...(key === "GP" ? [["Curl con mancuernas + extensión de tríceps en polea", "3×10-12", 60]] : src.slice(b[0] + 1, b[1]))]; ex.splice(at ? at[0] : ex.length, 0, ...blk); }
   }
   // …y la superserie pasa al final como cierre
   const g = segOf(ex, ss);
   if (g) {
     const blk = ex.splice(g[0], g[1] - g[0]);
-    if (mode === "full" && (key === "G" || key === "GP")) { const di = blk.findIndex(e => e[2] && /dominada/i.test(e[0])); blk.splice(di >= 0 ? di + 1 : blk.length, 0, ["Flexiones (con pies elevados o lastre si pasas de 15)", dl ? "2×10 · cómodas" : "3×8-15 · RIR 1-2", 60]); blk.push(["Pallof press con goma (antirrotación: el core que protege la espalda)", dl ? "2×10/lado" : "3×10/lado", 45]); }
+    if (mode === "full" && (key === "G" || key === "GP")) { const di = blk.findIndex(e => e[2] && /dominada/i.test(e[0])); blk.splice(di >= 0 ? di + 1 : blk.length, 0, ["Flexiones (con pies elevados o lastre si pasas de 15)", dl ? "2×10 · cómodas" : "3×8-15 · RIR 1-2", 60]); blk.push(["Plancha lateral (cadera alta, sin material)", dl ? "2×20\"/lado" : "3×30-40\"/lado", 45]); }
     blk[0] = [blk[0][0].replace(/^🅱️\s*VOLUMEN EN SUPERSERIE/i, "🅲 CIERRE EN SUPERSERIE").replace(/—\s*/, "— hace de finisher: ") , "—"];
     ex.push(...blk);
   }
