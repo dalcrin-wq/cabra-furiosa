@@ -773,13 +773,13 @@ const COMPRA_EL=[
 /* ══════════════ PERFILES ══════════════ */
 const EXSWAP_DB=[
  ["Pecho",/press banca|inclinado|fondos|flexiones|press de suelo|aperturas/i,[
-  ["Press banca (barra)",1],["Press inclinado con mancuernas"],["Press de suelo con mancuernas"],["Fondos en paralelas",1],["Flexiones",1],["Flexiones declinadas (pies en banco)",1],["Flexiones con chaleco o mochila",1],["Aperturas con mancuernas"]]],
+  ["Press banca (barra)",1],["Press inclinado con mancuernas"],["Press de suelo con mancuernas"],["Fondos en paralelas",1],["Flexiones",1],["Flexiones agarre cerrado (manos bajo los hombros, codos pegados)",1],["Flexiones declinadas (pies en banco)",1],["Flexiones con chaleco o mochila",1],["Aperturas con mancuernas"]]],
  ["Espalda",/dominada|remo|jal[oó]n|renegado|australiana/i,[
   ["Dominadas",1],["Dominadas australianas en barra baja",1],["Remo en máquina (polea, agarre neutro)",1],["Remo con barra"],["Remo con mancuerna a una mano"],["Remo renegado (mancuernas)"],["Remo con kettlebell a una mano"],["Remo inverso bajo la mesa",1]]],
  ["Hombro",/militar|press (de )?hombros?|laterales|p[aá]jaros|push press|arnold|pike/i,[
-  ["Press militar (barra)"],["Press de hombros con mancuernas",1],["Press inclinado con barra"],["Press inclinado con mancuernas"],["Push press con mancuernas"],["Elevaciones laterales"],["Elevaciones laterales en máquina o polea",1],["Pájaros (posteriores)"],["Pike push-ups",1],["Press Arnold"]]],
+  ["Press militar (barra)"],["Press de hombros con mancuernas",1],["Press inclinado con barra"],["Press inclinado con mancuernas"],["Push press con mancuernas"],["Elevaciones laterales con mancuernas"],["Elevaciones laterales en máquina o polea",1],["Pájaros (posteriores)"],["Pike push-ups",1],["Press Arnold"]]],
  ["Brazo",/curl|tr[ií]ceps|extensi[oó]n|martillo|diamante/i,[
-  ["Curl mancuernas alterno"],["Curl con barra"],["Curl martillo"],["Curl en barra baja del parque",1],["Extensión de tríceps sobre cabeza"],["Extensión de tríceps en polea",1],["Fondos entre bancos",1],["Flexiones diamante",1]]],
+  ["Curl mancuernas alterno"],["Curl con barra"],["Curl martillo"],["Curl en barra baja del parque",1],["Extensión de tríceps sobre cabeza"],["Extensión de tríceps en polea",1],["Fondos entre bancos",1],["Flexiones agarre cerrado (manos bajo los hombros, codos pegados)",1],["Flexiones diamante",1]]],
  ["Cuádriceps",/sentadilla|front squat|b[uú]lgara|zancada|goblet|step/i,[
   ["Sentadilla trasera (barra)"],["Front squat (barra)"],["Goblet squat (KB o mancuerna)"],["Zancadas alternas",1],["Búlgaras (pie en banco)",1],["Step-ups al cajón o banco",1],["Sentadilla con salto",1]]],
  ["Glúteo y femoral",/hip thrust|peso muerto|rumano|n[oó]rdico|curl femoral|puente de gl[uú]teo|buenos d[ií]as|swing/i,[
@@ -950,6 +950,7 @@ const CAT = [
   ["floor", "Press de suelo", /press de suelo/i, "w", "Pecho", ["Brazo"], 2],
   ["fly", "Aperturas", /aperturas/i, "w", "Pecho", [], 1],
   ["pike", "Pike push-ups", /pike/i, "bw", "Hombro", ["Brazo"], 0],
+  ["pushup_c", "Flexiones agarre cerrado", /flexiones (con )?agarre cerrado|flexiones cerradas/i, "bw", "Brazo", ["Pecho", "Hombro"], 0],
   ["diamond", "Flexiones diamante", /diamante/i, "bw", "Brazo", ["Pecho"], 0],
   ["dips", "Fondos", /fondos/i, "bw", "Pecho", ["Brazo"], 0],
   ["pushup", "Flexiones", /flexiones|push-?ups/i, "bw", "Pecho", ["Brazo", "Hombro"], 0],
@@ -2543,7 +2544,7 @@ function exSwapSheet(dk, orig) {
   const opt = x => `<button class="opt" data-act="exSwapPick" data-dk="${dk}" data-o="${esc(orig)}" data-n="${esc(x[0])}">${esc(x[0])}${x[1] ? " 🏞️" : ""}</button>`;
   openSheet(`<h2>Cambiar ${esc(cur || orig)}</h2><p class="small mut" style="margin-bottom:6px">Primero los de ${g ? g[0].toLowerCase() : "la misma zona"}; más abajo, el resto del cuerpo. 🏞️ vale en el parque · solo este día.</p>
     ${cur ? `<button class="opt on" data-act="exSwapPick" data-dk="${dk}" data-o="${esc(orig)}" data-n="">↩ Volver a ${esc(orig)}</button>` : ""}
-    ${groups.map((m, gi) => { const l = m[2].filter(x => x[0] !== orig && x[0] !== cur && !inS.has(x[0])); return l.length ? `<div class="grp">${gi === 0 && g ? "Misma zona · " : ""}${m[0]}</div>` + l.map(opt).join("") : ""; }).join("")}`);
+    ${groups.map((m, gi) => { const l = m[2].filter(x => x[0] !== orig && x[0] !== cur && !inS.has(x[0]) && exInfo(x[0]).id !== exInfo(cur || orig).id); return l.length ? `<div class="grp">${gi === 0 && g ? "Misma zona · " : ""}${m[0]}</div>` + l.map(opt).join("") : ""; }).join("")}`);
 }
 const cur0 = (dk, orig) => (S.exswap[dk] || {})[orig] || orig;
 function addExSheet(dk) {
