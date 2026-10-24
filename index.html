@@ -1995,7 +1995,8 @@ function dayPanelHTML(dk) {
   const status = day.type === "o" ? `<div class="note" style="margin-top:12px">Recuperación: guía opcional. No cuenta ni resta en la constancia.</div>` : done
     ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px"><span class="stamp" style="margin:0">✓ Hecha</span>${["g", "y", "r"].map(l => `<button class="chip ${(S.energy[dk] || "g") === l ? "on" : ""}" data-act="energy" data-dk="${dk}" data-l="${l}" style="${(S.energy[dk] || "g") === l ? `background:${EN_COL[l]};color:#111` : ""}">${EN_TXT[l]}</button>`).join("")}<button class="link small" data-act="undone" data-dk="${dk}" style="margin-left:auto">Deshacer</button></div>`
     : fut ? "" : `<button class="btn ${past ? "line" : ""}" data-act="finish" data-dk="${dk}" style="margin-top:14px">${past ? "La hice: marcar como hecha" : "Marcar sesión hecha"}</button>`;
-  const canSess = !fut && (day.type === "f" || day.type === "m" || day.key === "F" || !!(S.rescue[dk] && S.rescue[dk].length));
+  const canSess = !fut && (day.type === "f" || day.type === "m" || day.key === "F");
+  const hasRescue = !fut && !!(S.rescue[dk] && S.rescue[dk].length);
   return `<section class="panel" style="border-radius:6px 22px 6px 22px">
     <div class="small mut">${WDAY[d.getDay()].replace(/^./, c => c.toUpperCase())} ${fmtDay(dk)}${dk === t ? " · hoy" : ""}</div>
     <h2 style="margin:2px 0 8px"><span style="color:${letCol(letterOf(day.key))}">${letterOf(day.key)}</span> ${esc(titleOf(day.key))}</h2>
@@ -2004,6 +2005,7 @@ function dayPanelHTML(dk) {
     ${S.diary[dk] ? `<div class="note" style="font-style:italic">“${esc(S.diary[dk])}”</div>` : ""}
     ${day.key === "L" ? `<div class="note"><b>Actividad:</b> ${esc(S.free[dk] || "sin describir")} <button class="link" data-act="free" data-dk="${dk}">Editar</button></div>` : ""}
     ${canSess && !done ? `<button class="btn" data-act="sessOpen" data-dk="${dk}" style="margin-top:12px">${past ? "Registrar esta sesión" : "Empezar sesión"}</button>` : ""}
+    ${hasRescue ? `<button class="btn line" data-act="rescueOpen" data-dk="${dk}" style="margin-top:10px">🧹 Barrido de volumen (complemento)</button>` : ""}
     ${status}
     ${sessionBodyHTML(day)}
   </section>${dblCardHTML(dk, true)}`;
@@ -2498,6 +2500,11 @@ function rescueSheet(dk) {
     <button class="btn" data-act="rescueGo" data-dk="${dk}" style="margin-top:12px">Crear y empezar</button>
     <button class="btn line" data-act="rescueRoll" data-dk="${dk}" style="margin-top:8px">🎲 Otros ejercicios</button>`);
 }
+function rescueSess(dk) {            // el barrido es un complemento: su «Terminar» no marca la sesión del día
+  sessOpen(dk); if (!SS) return; SS.rescue = true;
+  const ex = exItems(SS.day), j = ex.findIndex(i => i.rescue && (!recOf(i.id, dk) || recOf(i.id, dk).sets.length < parseScheme(i.scheme).sets));
+  SS.i = j >= 0 ? j : Math.max(0, ex.findIndex(i => i.rescue)); renderSess();
+}
 function rescueDone(dk) {
   if (SS) sessClose();
   const e = weekEffective(mondayOf(dk)).eff, n = MUSCLES.filter(m => e[m] >= 10).length;
@@ -2774,11 +2781,11 @@ const ACT = {
     render({ keepScroll: true }); winFx(S.done[d.dk] ? "Doblete" : "Sesión ganada", S.done[d.dk] ? "Dos sesiones, un día. La cabra cobra doble." : "La del plan aún te espera."); },
   dblUndo: d => { if (S.dbl[d.dk]) { S.dbl[d.dk].done = false; save(); render({ keepScroll: true }); toast("Segunda sesión desmarcada"); } },
   dblKm: d => inputSheet("Kilómetros · 2ª sesión", "Los del Garmin. Vacío para borrar.", S.dbl[d.dk] && S.dbl[d.dk].km ? fmtNum(S.dbl[d.dk].km) : "", v => { const n = parseFloat(String(v).replace(",", ".")); if (!S.dbl[d.dk]) return; if (n > 0) S.dbl[d.dk].km = n; else delete S.dbl[d.dk].km; save(); render({ keepScroll: true }); }, { num: true }),
-  finish: d => { if (k2Of(d.dk, d.k)) { dblFinishSheet(d.dk); return; } const ex = exItems(buildDay(d.dk)); if (ex.length && ex.every(i => i.rescue)) { rescueDone(d.dk); return; } finishSheet(d.dk); },
+  finish: d => { if (k2Of(d.dk, d.k)) { dblFinishSheet(d.dk); return; } if (SS && SS.rescue && SS.dk === d.dk) { const main = exItems(SS.day).filter(i => !i.rescue); if (S.done[d.dk] || !main.some(i => recOf(i.id, d.dk))) { rescueDone(d.dk); return; } } finishSheet(d.dk); },
   rescue: d => rescueSheet(d.dk),
   rescueRoll: d => { S.rescueRoll = (S.rescueRoll || 0) + 1; rescueSheet(d.dk); },
-  rescueGo: d => { const P = rescuePlan(d.dk, S.rescueRoll || 0); if (!P.items.length) { closeSheet(); toast("Todas las barras ya pasan de 10. Hoy, a descansar con la conciencia tranquila."); return; } S.rescue[d.dk] = P.items.map(({ n, sets }) => ({ n, sets })); save(); closeSheet(); render({ keepScroll: true }); sessOpen(d.dk); },
-  rescueOpen: d => { closeSheet(); sessOpen(d.dk); },
+  rescueGo: d => { const P = rescuePlan(d.dk, S.rescueRoll || 0); if (!P.items.length) { closeSheet(); toast("Todas las barras ya pasan de 10. Hoy, a descansar con la conciencia tranquila."); return; } S.rescue[d.dk] = P.items.map(({ n, sets }) => ({ n, sets })); save(); closeSheet(); render({ keepScroll: true }); rescueSess(d.dk); },
+  rescueOpen: d => { closeSheet(); rescueSess(d.dk); },
   rescueDel: d => { delete S.rescue[d.dk]; save(); closeSheet(); render({ keepScroll: true }); toast("Barrido quitado. Las series que ya hiciste se quedan."); },
   finEn: (d, el) => { $("sheet").dataset.en = d.l; $("finSema").querySelectorAll("button").forEach(b => b.classList.toggle("on", b === el)); },
   finOk: d => {
