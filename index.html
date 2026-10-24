@@ -1224,8 +1224,10 @@ function volumeTopUp(key, ex, dl) {
    superserie corta. Pares antagonistas mantienen el rendimiento de ambos y ahorran tiempo (Robbins 2010). */
 function shapeB(ex, mode, dl) {
   const g = segOf(ex, /SUPERSERIE/i); if (!g) return ex;
-  const blk = [["🅱️ PECHO Y ESPALDA EN SUPERSERIE — inclinado con mancuernas + remo con la barra que ya tienes montada. Empuje y tirón alternos: uno descansa mientras el otro trabaja.", "—"],
-    ["Press inclinado con mancuernas", dl ? "2×10 · cómodo" : "3×8-12 · RIR 1-2", 75],
+  const inclHeavy = ex.slice(0, g[0]).some(e => e[2] && /^Press inclinado/i.test(e[0]));   // semanas de rotación: el pesado ya es inclinado
+  const chest = inclHeavy ? ["Fondos en paralelas (tronco hacia delante: más pecho)", dl ? "2×8 · cómodos" : "3×8-12 · RIR 1-2", 75] : ["Press inclinado con mancuernas", dl ? "2×10 · cómodo" : "3×8-12 · RIR 1-2", 75];
+  const blk = [["🅱️ PECHO Y ESPALDA EN SUPERSERIE — " + (inclHeavy ? "fondos" : "inclinado con mancuernas") + " + remo con la barra que ya tienes montada. Empuje y tirón alternos: uno descansa mientras el otro trabaja.", "—"],
+    chest,
     ["Remo con barra (agarre prono)", dl ? "2×10 · cómodo" : "3×10-12 · RIR 1-2", 75]];
   if (mode === "full") blk.push(["🎯 HOMBRO EN SUPERSERIE — corta y limpia: militar para la fuerza, laterales para la anchura.", "—"],
     ["Press militar con mancuernas", dl ? "2×8 · cómodo" : "3×8-10 · RIR 1-2", 75],
@@ -1262,8 +1264,13 @@ function weekShape(key, ex, mode, dl) {
   if (g) {
     const blk = ex.splice(g[0], g[1] - g[0]);
     if (mode === "full" && (key === "G" || key === "GP")) { const di = blk.findIndex(e => e[2] && /dominada/i.test(e[0])); blk.splice(di >= 0 ? di + 1 : blk.length, 0, ["Flexiones (con pies elevados o lastre si pasas de 15)", dl ? "2×10 · cómodas" : "3×8-15 · RIR 1-2", 60]); blk.push(["Plancha lateral (cadera alta, sin material)", dl ? "2×20\"/lado" : "3×30-40\"/lado", 45]); }
-    blk[0] = [blk[0][0].replace(/^🅱️\s*VOLUMEN EN SUPERSERIE/i, "🅲 CIERRE EN SUPERSERIE").replace(/—\s*/, "— hace de finisher: ") , "—"];
-    ex.push(...blk);
+    const groups = pairUp(blk.filter(e => e[2]));
+    groups.forEach((gr, k) => {
+      const names = gr.map(e => e[0].split(" (")[0].toLowerCase()).join(" + ");
+      if (k === 0) ex.push(["🅲 CIERRE EN SUPERSERIE — por parejas: " + names + ". Descanso corto entre uno y otro, algo más al acabar la vuelta: pulsaciones arriba y cerca del fallo.", "—"]);
+      else ex.push([gr.length > 1 ? "🔁 SUPERSERIE " + (k + 1) + " — " + names : "🧱 SUELTO — " + names, "—"]);
+      ex.push(...gr);
+    });
   }
   return ex;
 }
@@ -1341,9 +1348,29 @@ function buildDay(dk, k2) {                         // k2: segunda sesión del d
     if (same.length < 2) { it.blk = null; return; }
     it.pos = same[same.length - 1] === it ? "last" : "mid";
     it.blkRest = Math.max(90, ...same.map(x => x.rest));
+    const nxt = same[same.indexOf(it) + 1]; if (nxt) it.midRest = midRestOf(it, nxt);
   });
   return { dk, k2: k2 || null, key, T, name: T.name, type: T.type, note: T.note, pre: T.pre || "", pnote: pt.pnote, banner: ad.banner, items, wod, extra: !!extra,
     w, pw, mode, en, guardia: isGuardia(dk), noMat: k2 ? isX(k2) : isX(S.swap[dk]), matTags, summ: SUMM_EL[key] || {} };
+}
+/* Descanso dentro de la superserie: lo justo para llegar cerca del fallo con las pulsaciones algo altas.
+   Pierna 60", compuesto de tren superior 45", aislamiento/core 30". Al acabar la vuelta, el descanso largo. */
+const ISO_IDS = new Set(["lateral", "lat_m", "rear", "curl", "triceps", "tri_c", "fly", "plank", "plank_s", "abwheel", "hollow", "twists", "situps", "pallof", "diamond", "pushup_c"]);
+const isLegEx = x => ["Cuádriceps", "Glúteo y femoral"].includes((CAT_BY[x.id] || {}).m);
+const isIsoEx = x => ISO_IDS.has(x.id) || x.k === "t";
+const restFor = it => it.pos === "mid" ? it.midRest || 45 : it.pos ? it.blkRest : it.rest;
+function midRestOf(a, b) { if (isLegEx(a) || isLegEx(b)) return 60; if (isIsoEx(a) && isIsoEx(b)) return 30; return 45; }
+/* Partir un cierre largo en parejas: pierna + tren superior, empuje + tirón, core con core. */
+function pairUp(lines) {
+  const cls = e => { const i = exInfo(e[0], e[1]); return isLegEx(i) ? "L" : (isIsoEx(i) && (i.m === "Core" || i.k === "t")) ? "C" : "U"; };
+  const L = lines.filter(e => cls(e) === "L"), U = lines.filter(e => cls(e) === "U"), C = lines.filter(e => cls(e) === "C"), G = [];
+  while (L.length && U.length) G.push([L.shift(), U.shift()]);
+  while (U.length >= 2) G.push([U.shift(), U.shift()]);
+  if (U.length && C.length) G.push([U.shift(), C.shift()]);
+  while (L.length && C.length) G.push([L.shift(), C.shift()]);
+  while (C.length >= 2) G.push([C.shift(), C.shift()]);
+  [...L, ...U, ...C].forEach(e => G.push([e]));
+  return G;
 }
 function parseHead(txt) {
   const blk = /^🅰️/.test(txt) ? "A. " : /^🅱️/.test(txt) ? "B. " : /^🅲/.test(txt) ? "C. " : "";
@@ -2022,12 +2049,12 @@ function sessionBodyHTML(day) {
     if (it.t !== "e" || it.blk !== openBlk) close();
     if (it.t === "h") { h += `<div class="sec"><div class="st">${esc(it.text)}${it.right ? ` <span class="small mut">· ${esc(it.right)}</span>` : ""}</div>${it.sub ? `<div class="sd">${esc(it.sub)}</div>` : ""}</div>`; return; }
     if (it.t === "i") { h += `<div class="info"><span>${esc(it.text)}</span><span>${esc(it.right || "")}</span></div>`; return; }
-    if (it.blk && it.blk !== openBlk) { const n = day.items.filter(x => x.t === "e" && x.blk === it.blk).length; h += `<div class="blk"><div class="blk-h">${n} ejercicios encadenados, descanso de ${fmtT(it.blkRest)} al final de la vuelta</div>`; openBlk = it.blk; }
+    if (it.blk && it.blk !== openBlk) { const n = day.items.filter(x => x.t === "e" && x.blk === it.blk).length; h += `<div class="blk"><div class="blk-h">${n} ejercicios en superserie: descanso corto entre uno y otro, ${fmtT(it.blkRest)} al acabar la vuelta</div>`; openBlk = it.blk; }
     const r = recOf(it.id, dk), rc = recommend(it, dk);
     const sets = r ? r.sets.map((s, i) => `<button class="set ${r.pr && recBest(r).set === s ? "pr" : ""}" data-act="setEdit" data-id="${it.id}" data-dk="${dk}" data-i="${i}" aria-label="Editar serie">${fmtSet(it.k, s)}${it.k !== "s" ? " " + RIR_ICO[(it.k === "w" ? s[2] : s[1]) ?? 1] : ""}</button>`).join("") : "";
     const hint = it.added ? "Añadido solo este día" : it.orig ? "Cambiado · en el plan: " + it.orig : (!r && !fut && rc.txt) ? (rc.last ? "Anterior: " + rc.last.sets.map(s => fmtSet(it.k, s)).join(", ") + " → hoy " + rc.txt : rc.txt) : "";
-    h += `<div class="ex"><div class="main"><div class="nm">${esc(it.name)}</div><div class="sc">${esc(it.scheme)}${it.pos === "mid" ? " · sin descanso" : ""}</div>${hint ? `<div class="hint">${esc(hint)}</div>` : ""}${sets ? `<div class="sets">${sets}${r.pr ? " 🏆" : ""}</div>` : ""}</div>
-      <div class="ico">${!fut && it.pos !== "mid" ? `<button class="ibtn clk" data-act="restGo" data-s="${it.pos ? it.blkRest : it.rest}" aria-label="Descanso ${fmtT(it.pos ? it.blkRest : it.rest)}">⏱<small>${restLbl(it.pos ? it.blkRest : it.rest)}</small></button>` : ""}${!fut ? `<button class="ibtn hot" data-act="setSheet" data-dk="${dk}" data-idx="${idx}" aria-label="Anotar series">✎</button>` : ""}<button class="ibtn" data-act="${it.added ? "delAdd" : "exSwap"}" data-dk="${dk}" data-name="${esc(it.orig || it.name)}" aria-label="${it.added ? "Quitar" : "Cambiar ejercicio"}">${it.added ? "✕" : "⇄"}</button></div></div>`;
+    h += `<div class="ex"><div class="main"><div class="nm">${esc(it.name)}</div><div class="sc">${esc(it.scheme)}${it.pos === "mid" ? " · luego " + fmtT(it.midRest) + " y al siguiente" : ""}</div>${hint ? `<div class="hint">${esc(hint)}</div>` : ""}${sets ? `<div class="sets">${sets}${r.pr ? " 🏆" : ""}</div>` : ""}</div>
+      <div class="ico">${!fut ? `<button class="ibtn clk" data-act="restGo" data-s="${restFor(it)}" aria-label="Descanso ${fmtT(restFor(it))}">⏱<small>${restLbl(restFor(it))}</small></button>` : ""}${!fut ? `<button class="ibtn hot" data-act="setSheet" data-dk="${dk}" data-idx="${idx}" aria-label="Anotar series">✎</button>` : ""}<button class="ibtn" data-act="${it.added ? "delAdd" : "exSwap"}" data-dk="${dk}" data-name="${esc(it.orig || it.name)}" aria-label="${it.added ? "Quitar" : "Cambiar ejercicio"}">${it.added ? "✕" : "⇄"}</button></div></div>`;
   });
   close();
   if (day.wod) h += wodHTML(day);
@@ -2391,7 +2418,7 @@ function sessCardHTML(day, it, idx) {
   return `
     ${header ? `<div class="small mut" style="margin:0 2px 8px">${esc(header.text)}</div>` : ""}
     <section class="s-card">
-      ${blkItems ? `<span class="ssb">Superserie ${blkItems.indexOf(it) + 1}/${blkItems.length}${it.pos === "mid" ? " · sin descanso" : " · descanso " + fmtT(it.blkRest)}</span>` : ""}
+      ${blkItems ? `<span class="ssb">Superserie ${blkItems.indexOf(it) + 1}/${blkItems.length}${it.pos === "mid" ? " · " + fmtT(it.midRest) + " y al siguiente" : " · " + fmtT(it.blkRest) + " y otra vuelta"}</span>` : ""}
       <h1>${esc(it.name)}</h1>
       <div class="sc">${esc(it.scheme)}</div>
       ${qnavHTML(day, idx)}
@@ -2407,7 +2434,7 @@ function sessCardHTML(day, it, idx) {
       <div id="restBox"></div>
       ${chips}
     </section>
-    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="chip" data-act="exSwap" data-dk="${dk}" data-name="${esc(it.orig || it.name)}">⇄ Cambiar ejercicio</button>${it.rest ? `<button class="chip" data-act="restGo" data-s="${it.pos ? it.blkRest : it.rest}">⏱ Descanso ${fmtT(it.pos ? it.blkRest : it.rest)}</button>` : ""}</div>`;
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="chip" data-act="exSwap" data-dk="${dk}" data-name="${esc(it.orig || it.name)}">⇄ Cambiar ejercicio</button>${it.rest ? `<button class="chip" data-act="restGo" data-s="${restFor(it)}">⏱ Descanso ${fmtT(restFor(it))}</button>` : ""}</div>`;
 }
 function qnavHTML(day, idx) {          // navegación rápida justo bajo el título; se queda pegada arriba al hacer scroll
   const ex = exItems(day), n = ex.length + (day.wod ? 1 : 0), nx = idx + 1 < ex.length ? ex[idx + 1].name : idx + 1 === ex.length && day.wod ? "WOD final" : "";
@@ -2452,13 +2479,15 @@ function logSet() {
   buzz(res.isPR ? [40, 50, 40, 50, 80] : 25);
   if (res.isPR) { prFx(it, res); }
   const need = parseScheme(it.scheme).sets, cnt = recOf(it.id, SS.dk).sets.length;
-  // flujo: superserie → siguiente sin descanso; fin de vuelta → descanso y vuelta al primero
-  if (it.pos === "mid") { SS.i++; toast("Sin descanso: " + ex[SS.i].name); }
-  else if (it.pos === "last") {
-    const blk = ex.filter(x => x.blk === it.blk), first = blk[0], fr = recOf(first.id, SS.dk);
-    const rounds = fr ? fr.sets.length : 0;
-    tmRest(it.blkRest);
-    if (rounds < parseScheme(first.scheme).sets) SS.i = ex.indexOf(first); else SS.i = ex.indexOf(it) + 1;
+  // superserie: descanso corto y al siguiente que aún tenga series; al cerrar la vuelta, descanso largo
+  if (it.blk) {
+    const blk = ex.filter(x => x.blk === it.blk), pos = blk.indexOf(it);
+    const needs = x => { const r = recOf(x.id, SS.dk); return (r ? r.sets.length : 0) < parseScheme(x.scheme).sets; };
+    let nx = null, wrap = false;
+    for (let k = 1; k <= blk.length; k++) { const j = (pos + k) % blk.length; if (needs(blk[j])) { nx = blk[j]; wrap = pos + k >= blk.length; break; } }
+    if (!nx) { tmRest(it.blkRest || 90); SS.i = ex.indexOf(blk[blk.length - 1]) + 1; }
+    else if (wrap) { tmRest(it.blkRest || 90); SS.i = ex.indexOf(nx); }
+    else { tmRest(it.midRest || 45); SS.i = ex.indexOf(nx); }
   } else {
     tmRest(it.rest || 60);
     if (cnt >= need) SS.i++;
