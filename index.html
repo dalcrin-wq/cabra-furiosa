@@ -558,6 +558,10 @@ G:{name:"Fuerza C — Bisagra y Glúteo",type:"f",ex:[
  ["Opción 2 · AMRAP 8': 10 swings 16 kg + 20 saltos cuerda + 6 burpees","8 min"],
  ["Opción 3 (con airbike) · Tabata 8×(20\"/10\") a fuego","4 min"]],
  note:"Viernes de bisagra: hip thrust (el rey del glúteo), búlgara para pierna unilateral, y el nórdico asistido como seguro anti-isquios — con tu historial de femoral, este ejercicio vale oro, pero LENTO y asistido (agárrate al rack y baja controlado). El cierre en superserie hace de finisher: sudas sin necesidad de WOD, que vive el miércoles."},
+WB:{name:"WOD bombero · trabajo real",type:"m",ex:[
+ ["🔥 CALENTAMIENTO: 5' suaves (trote, comba o airbike) + 10 sentadillas + 10 balanceos de cadera + 20\" colgado de la barra","—"],
+ ["🅲 WOD FINAL — elige uno de los tres:","—"]],
+ note:"El WOD de la semana, a ritmo sostenido: esfuerzo 6-7 sobre 10. Al acabar cada ronda deberías poder decir una frase corta; si no puedes, afloja. Cargar, arrastrar, subir y agarrar: lo que pide el trabajo, sin picos de esfuerzo máximo. Mochila de 10-15 kg y mancuernas pesadas pero manejables."},
 W:{name:"WOD · Aire Furioso (metabólico)",type:"m",ex:[
  ["Kettlebell swing 16 kg","20"],["Burpees","10"],
  ["Goblet squat 12 kg","15"],["Cuerda de saltar","40 saltos"],
@@ -580,7 +584,7 @@ BP:{name:"Fuerza B — PARQUE 🚒 (banca + dominadas)",type:"f",ex:[
  ["Press hombros con mancuernas (las de 22 kg)","3×8-12",75],
  ["Remo en máquina (polea, agarre neutro)","3×8-12",75],
  ["Elevaciones laterales en máquina o polea","3×12-15",60],
- ["💥 FINISHER · Remo 8×(1' fuerte / 1' suave)","16'"]],
+ ["🅲 WOD FINAL — WOD bombero con el material del parque (escaleras, remo, airbike, mancuernas):","—"]],
  note:"Pecho y espalda como en casa, con la banca y la barra de dominadas del parque — el tema del día se respeta esté donde esté el cuerpo. Con lo que hay en el parque: banca y fondos para el pecho, el press con las de 22 kg (como no puedes subir peso, progresa en reps hasta 12), remo en máquina cargado para la espalda, y laterales y tríceps en polea. El remo ergómetro del parque es de calidad: úsalo como finisher y como termómetro — si las calorías por minuto suben mes a mes, vas bien."},
 GP:{name:"Fuerza C — PARQUE 🚒 (glúteo + pierna)",type:"f",ex:[
  ["🚒 Día de guardia. Calentamiento: 5' remo suave + 2 rondas (10 puente glúteo + 10 plancha)","—"],
@@ -727,6 +731,7 @@ const SUMM_EL={
  A:{d:"55-65'",e:"Pesado en frescura (sentadilla), bloque espejo y la superserie como cierre que hace sudar.",c:"Sentadilla sólida, pecho y espalda, core de acero — y ganas de volver mañana."},
  B:{d:"55-65'",e:"Banca y dominada, superserie de pecho y espalda, otra corta de hombro y el WOD de la semana. El día del V-shape y del postre.",c:"Espalda ancha, hombros 3D, pecho fuerte — la silueta que se ve con camiseta."},
  G:{d:"50-60'",e:"Viernes de glúteo y bisagra: hip thrust pesado, brazo directo y cierre en superserie con búlgara y nórdico.",c:"Glúteo fuerte, femorales blindados y la espalda baja protegida."},
+ WB:{d:"15-20'",e:"Cargar, arrastrar, subir y agarrar a ritmo sostenido. El WOD de la semana: se puede hacer el miércoles al final o suelto cualquier día.",c:"Capacidad de trabajo de bombero, agarre y un motor que aguanta sin picos."},
  W:{d:"20-25'",e:"El horno metabólico de la semana. 5 rondas, fatiga metabólica sí, técnica no.",c:"Motor, quema de grasa y un corazón que no le teme a nada."},
  R:{d:"35-50'",e:"El barrendero en zona 2. Suave, charlatán, sin ego. Martes 35-45', sábado largo 40-50'.",c:"Base aeróbica y quema de grasa sin desgastar las pesas."},
  F:{d:"40-45'",e:"Escuela de velocidad: calentamiento serio, drills de zancada, saltos y sprints cortos en cuesta o llano según la fase. Pocos, rápidos, descansados.",c:"Potencia de velocista, gemelos y glúteos de muelle — y un corazón que aprende a dispararse y recuperar."},
@@ -1098,7 +1103,7 @@ const letterOf = key => {
   if (isX(key)) return "X";
   return ({ G: "C", GP: "C", AP: "A", BP: "B" })[key] || key[0];
 };
-const TITLES = { A: "Sentadilla y empuje", B: "Banca y dominada", G: "Bisagra y glúteo", W: "Aire furioso", AP: "Pierna y empuje en el parque", BP: "Banca y dominadas en el parque",
+const TITLES = { A: "Sentadilla y empuje", B: "Banca y dominada", G: "Bisagra y glúteo", WB: "WOD bombero", W: "Aire furioso", AP: "Pierna y empuje en el parque", BP: "Banca y dominadas en el parque",
   GP: "Glúteo y pierna en el parque", WP: "Aire furioso en el parque", X: "Full body sin material", XA: "Pierna y empuje sin material", XB: "Pecho y espalda sin material",
   XG: "Bisagra y glúteo sin material", R: "Rodaje suave", F: "Escuela de velocidad", C: "Cuestas o trail", P: "Piscina y movilidad", Z: "Día de recuperación", L: "Otra actividad", O: "Descanso" };
 const titleOf = key => TITLES[key] || (SE_EL[key] ? SE_EL[key].name : key);
@@ -1178,7 +1183,44 @@ function wodOpt(bias, okMat, rnd, f, excl) {
     default: return { f: "Death by", txt: `${mv[0][0]}: minuto 1 = 1 rep, +1 cada minuto hasta que no dé.`, d: "12'+", tm: ["emom", [15]], res: "Minuto de caída" };
   }
 }
+/* ── WOD bombero: trabajo de verdad (cargar, arrastrar, subir, agarrar) a ritmo sostenido, RPE 6-7.
+   Formatos sin picos máximos: EMOM, rondas de calidad y bloques cada 2'. Material según dónde estés. */
+const WB_MOVES = [
+  ["Paseo del granjero con las 2 mancuernas más pesadas", "40 m", "db", "carry"],
+  ["Paseo con la mochila lastrada abrazada al pecho", "40 m", "bag", "carry"],
+  ["Arrastre de mochila o rueda con cuerda, andando hacia atrás", "20 m", "bag", "carry"],
+  ["Subida de escaleras con mochila (o step-ups al banco)", "2 pisos / 10 por pierna", "bag", "climb"],
+  ["Zancadas con mochila", "10 por pierna", "bag", "climb"],
+  ["Swings con kettlebell (o con una mancuerna)", "15", "db", "work"],
+  ["Thrusters con mancuernas (la manguera al hombro)", "8", "db", "work"],
+  ["Peso muerto con mancuernas o mochila", "10", "db", "work"],
+  ["Tumbarse y levantarse sin apoyar las manos si puedes", "6", "bw", "work"],
+  ["Burpees a ritmo controlado", "6", "bw", "work"],
+  ["Colgado de la barra (agarre)", "30-40\"", "bar", "grip"],
+  ["Paseo del granjero a una mano (cambia a mitad)", "30 m", "db", "grip"],
+  ["Remo ergómetro", "250 m", "row", "engine"],
+  ["Airbike a ritmo firme", "12 cal", "bike", "engine"],
+  ["Comba", "60 saltos", "rope", "engine"]
+];
+function wodBombero(key, dk) {
+  const park = isGuardia(dk) || key === "BP", fl = key[0] === "X" ? (S.mat[dk] || {}) : null;
+  const ok = m => fl ? (m[2] === "bw" || m[2] === "bag" || (fl.bar && m[2] === "bar") || (fl.rope && m[2] === "rope") || (fl.kb && m[2] === "db"))
+    : !((m[2] === "row" || m[2] === "bike") && !park);
+  const rnd = rng32(hstr(dk + "·WB·" + key + "·" + (S.wodRoll[dk + key] || 0)));
+  const used = new Set(), seen = new Set();          // used: dentro del formato; seen: entre formatos (variedad)
+  const pick = (...roles) => { for (const fresh of [true, false]) for (const r of roles) { const a = WB_MOVES.filter(m => m[3] === r && ok(m) && !used.has(m[0]) && (!fresh || !seen.has(m[0]))); if (a.length) { const m = a[Math.floor(rnd() * a.length)]; used.add(m[0]); seen.add(m[0]); return m; } } let a = WB_MOVES.filter(m => ok(m) && !used.has(m[0])); if (!a.length) a = WB_MOVES.filter(ok); const m = a[Math.floor(rnd() * a.length)]; used.add(m[0]); return m; };
+  const t = m => m[1] + " · " + m[0].charAt(0).toLowerCase() + m[0].slice(1);
+  const out = [];
+  used.clear(); { const a = pick("carry"), b = pick("work"), c = pick("grip", "engine"); out.push({ f: "EMOM 12' bombero", txt: `Min 1: ${t(a)}. Min 2: ${t(b)}. Min 3: ${t(c)}. Cuatro vueltas; lo que sobre del minuto, respiras.`, d: "12'", tm: ["emom", [12]], res: "¿Completado? Notas" }); }
+  used.clear(); { const a = pick("carry"), b = pick("climb", "work"), c = pick("work"); out.push({ f: "5 rondas de calidad", txt: `${t(a)} + ${t(b)} + ${t(c)}. Sin prisa: técnica limpia y respiración controlada, no contra el reloj.`, d: "~15'", tm: ["up", [18]], res: "Tiempo (mm:ss)" }); }
+  used.clear(); { const a = pick("carry", "climb"), b = pick("work", "engine"); out.push({ f: "Cada 2' × 6", txt: `En cada bloque: ${t(a)} + ${t(b)}. Trabajas ~1'30 y respiras lo que sobre hasta los 2'.`, d: "12'", tm: ["hiit", [90, 30, 6]], res: "¿Completado? Notas" }); }
+  for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+  out.forEach(o => o.bombero = true);
+  return out;
+}
+const wodWeekDone = mon => { const ks = new Set([...Array(7).keys()].map(i => addDays(mon, i))); return Object.keys(S.wodDone).some(k => ks.has(k.slice(0, 10)) && S.wodDone[k]); };
 function genWod(key, dk) {
+  if (["B", "BP", "XB", "WB"].includes(key)) return wodBombero(key, dk);
   const bias = { A: "A", B: "B", G: "G", XA: "A", XB: "B", XG: "G", X: "A" }[key];
   if (!bias) return null;
   const fl = key[0] === "X" ? (S.mat[dk] || {}) : null;
@@ -2065,7 +2107,7 @@ function sessionBodyHTML(day) {
 }
 function wodHTML(day) {
   const dk = day.dk, sel = S.wodDone[dk + day.key];
-  return `<div class="sec"><div class="st">C. WOD final</div><div class="sd">El único de la semana, así que llega con gasolina. Elige uno de los tres.</div></div>
+  return `<div class="sec"><div class="st">C. WOD final</div><div class="sd">${day.wod[0] && day.wod[0].bombero ? "WOD bombero, el de la semana: ritmo sostenido (esfuerzo 6-7/10, al acabar cada ronda puedes decir una frase corta). Cargar, arrastrar, subir, agarrar." : "El único de la semana, así que llega con gasolina. Elige uno de los tres."}</div></div>
     ${day.wod.map((o, i) => { const on = sel && sel.i === i; return `<div class="wod ${on ? "pick" : ""}">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b class="num" style="font-size:20px">${esc(o.f)}</b><span class="small mut">${esc(o.d)}</span></div>
       <div class="wt">${esc(o.txt)}</div>
@@ -2215,6 +2257,8 @@ function checksHTML() {
   if (rv) h += `<button class="panel reviewcard" data-act="openReview" style="display:block;width:100%;text-align:left"><div style="font-weight:700">📋 Revisión de las semanas ${rv.w - 4}–${rv.w - 1}</div><div class="small mut">Cuatro semanas de datos, cinco minutos de lectura y, si hace falta, un ajuste. Toca para verla.</div></button>`;
   const ew = weekEffective(mondayOf(t)).eff, low = MUSCLES.filter(m => ew[m] < 10);
   if (S.startDate && (dowOf(t) >= 5 || S.rescue[t]) && (low.length || S.rescue[t])) h += `<button class="panel" data-act="rescue" data-dk="${t}" style="display:block;width:100%;text-align:left;border-left:4px solid var(--ok)"><div style="font-weight:700">🧹 ${S.rescue[t] ? "Barrido de hoy" : low.length + (low.length === 1 ? " barra se queda" : " barras se quedan") + " por debajo de 10"}</div><div class="small mut">${S.rescue[t] ? "Toca para continuar." : low.join(", ") + ". Una sesión corta de barrido y a la pista de baile."}</div></button>`;
+  const mon0 = mondayOf(t), dkey = dayKey(t), wodToday = ["B", "BP", "XB", "WB"].includes(dkey) || (S.dbl[t] && S.dbl[t].k === "WB");
+  if (S.startDate && dowOf(t) >= 3 && !wodWeekDone(mon0) && !wodToday) h += `<button class="panel" data-act="wodToday" data-dk="${t}" style="display:block;width:100%;text-align:left;border-left:4px solid var(--ember)"><div style="font-weight:700">🧯 WOD bombero pendiente esta semana</div><div class="small mut">12-15 minutos de cargar, arrastrar y subir a ritmo sostenido. Toca para añadirlo hoy como 2ª sesión.</div></button>`;
   if (!hasW) h += `<div class="panel"><div class="chk"><div style="flex:1"><div style="font-weight:700">Pésate</div><div class="tiny mut">En ayunas, tras el baño. Un número al día y la tendencia hace el resto.</div></div><input id="qW" class="inp" inputmode="decimal" placeholder="kg" style="max-width:84px"><button class="btn sm" data-act="quickW">OK</button></div></div>`;
   return h;
 }
@@ -2564,7 +2608,7 @@ function inputSheet(title, sub, val, cb, opt = {}) {
   setTimeout(() => { const i = $("shIn"); if (i) i.onkeydown = e => { if (e.key === "Enter") ACT.sheetOk(); }; }, 50);
 }
 function swapSheet(dk) {
-  const keys = ["A", "B", "G", "W", "R", "F", "C", "P", "Z", "L"];
+  const keys = ["A", "B", "G", "WB", "R", "F", "C", "P", "Z", "L"];
   const cur = dayKey(dk), plan = plannedKey(dk);
   openSheet(`<h2>¿Qué sesión haces el ${fmtDay(dk)}?</h2><p class="small mut" style="margin-bottom:12px">Solo cambia este día. La plantilla sigue intacta.</p>
     ${S.swap[dk] ? `<button class="opt" data-act="swapPick" data-dk="${dk}" data-k=""><span class="L c-f">↩</span><span>Volver a la del plan<small>${esc(titleOf(plan))}</small></span></button>` : ""}
@@ -2600,7 +2644,7 @@ const k2Of = (dk, k) => k || (SS && SS.dk === dk && SS.k) || null;
 const dayOf = (dk, k) => buildDay(dk, k2Of(dk, k) || undefined);
 const akOf = d => k2Of(d.dk, d.k) ? d.dk + "·2" : d.dk;
 function dblSheet(dk) {
-  const keys = ["R", "C", "F", "A", "B", "G", "W", "P", "L"], cur = S.dbl[dk], main = dayKey(dk);
+  const keys = ["WB", "R", "C", "F", "A", "B", "G", "P", "L"], cur = S.dbl[dk], main = dayKey(dk);
   openSheet(`<h2>Segunda sesión · ${fmtDay(dk)}</h2><p class="small mut" style="margin-bottom:12px">La del plan (${esc(titleOf(main).toLowerCase())}) sigue igual. Esta va aparte: su propio «hecha», sus series y sus km.</p>
     ${keys.filter(k => k !== main && k !== parkType(main) && !(isGuardia(dk) && parkType(k) === main)).map(k => { const T = SE_EL[k]; return `<button class="opt ${cur && cur.k === k ? "on" : ""}" data-act="dblPick" data-dk="${dk}" data-k="${k}"><span class="L" style="color:${letCol(letterOf(k))}">${letterOf(k)}</span><span>${esc(titleOf(k))}<small>${esc((SUMM_EL[k] || {}).d || "")}</small></span></button>`; }).join("")}
     ${cur ? `<button class="btn line" data-act="dblDel" data-dk="${dk}" style="margin-top:6px">Quitar la segunda sesión</button>` : ""}`);
@@ -2801,6 +2845,7 @@ const ACT = {
   startPick: () => inputSheet("¿Qué día empezaste?", "Formato AAAA-MM-DD. Las semanas y fases se recolocan desde ahí.", S.startDate || today(), v => { if (/^\d{4}-\d{2}-\d{2}$/.test(v) && !isNaN(kdate(v))) { S.startDate = v; save(); render(); toast("Plan recolocado: estás en la semana " + currentWeek()); } else toast("Fecha no válida: usa AAAA-MM-DD"); }),
   energy: d => { S.energy[d.dk] = d.l; save(); if (SS) renderSess(); render({ keepScroll: true }); },
   dblAdd: d => dblSheet(d.dk),
+  wodToday: d => { if (S.dbl[d.dk] && S.dbl[d.dk].k !== "WB") { toast("Hoy ya tienes una 2ª sesión. Cámbiala por el WOD bombero con ⇄"); return; } S.dbl[d.dk] = S.dbl[d.dk] || { k: "WB" }; save(); render({ keepScroll: true }); sessOpen(d.dk, null, "WB"); },
   dblPick: d => { const was = S.dbl[d.dk]; S.dbl[d.dk] = { k: d.k }; if (was && was.k === d.k) S.dbl[d.dk] = was; save(); closeSheet(); render({ keepScroll: true }); toast("Doblete: " + titleOf(d.k).toLowerCase() + " como segunda sesión"); },
   dblDel: d => { delete S.dbl[d.dk]; save(); closeSheet(); render({ keepScroll: true }); toast("Segunda sesión quitada. Las series que hiciste se quedan."); },
   dblFin: d => dblFinishSheet(d.dk),
