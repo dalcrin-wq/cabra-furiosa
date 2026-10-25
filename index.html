@@ -959,6 +959,7 @@ const CAT = [
   ["pushup", "Flexiones", /flexiones|push-?ups/i, "bw", "Pecho", ["Brazo", "Hombro"], 0],
   ["pull_w", "Dominada lastrada", /dominada lastrada/i, "w", "Espalda", ["Brazo"], 2.5],
   ["pull_n", "Dominada neutra", /dominadas? (neutra|agarre neutro)|jal[oó]n/i, "bw", "Espalda", ["Brazo"], 0],
+  ["chinup", "Dominadas supinas", /dominadas? supinas?|chin-?ups?/i, "bw", "Espalda", ["Brazo"], 0],
   ["pullup", "Dominadas", /dominada/i, "bw", "Espalda", ["Brazo"], 0],
   ["row_m", "Remo en máquina", /remo en (m[aá]quina|polea)|remo sentado/i, "w", "Espalda", ["Brazo"], 2.5],
   ["row_bb", "Remo con barra", /remo con barra/i, "w", "Espalda", ["Brazo"], 2.5],
@@ -1254,7 +1255,11 @@ function volumeTopUp(key, ex, dl) {
     const p = segOf(ex, /PESADO/);
     if (p) ex.splice(p[1], 0, ["🎯 TÉCNICA Y CUÁDRICEPS — pausa de 2\" abajo y recorrido completo. Enseña a la sentadilla dónde está el fondo.", "—"],
       ["Sentadilla goblet con pausa (2\" abajo, talones clavados)", dl ? "2×8 · ligera" : "3×8-10 · RIR 2", 90]);
-    ex = ex.map(e => /^Curl mancuernas alterno \+ elevaciones laterales/.test(e[0]) ? ["Press inclinado con mancuernas + elevaciones laterales", dl ? "2×10 cada uno" : "3×10-12 cada uno, sin pausa", 60] : e);
+    // espejo: tirón + hombro (antagonistas) en lugar de un segundo press inclinado en la semana
+    const ie = ex.findIndex(e => /BLOQUE ESPEJO/.test(e[0]));
+    if (ie >= 0) ex.splice(ie, 2, ["🪞 ESPEJO EN SUPERSERIE — dominadas supinas + laterales: uno tira, el otro abre. Espalda ancha y hombro 3D, lo que se ve con camiseta.", "—"],
+      ["Dominadas supinas (agarre por debajo, pecho a la barra)", dl ? "2×6 · cómodas" : "3×6-10 · RIR 1-2", 75],
+      ["Elevaciones laterales con mancuernas", dl ? "2×12" : "3×12-15", 60]);
   }
   if (key === "BP") {                              // guardia: que el pecho no se quede en un solo ejercicio
     const i = ex.findIndex(e => e[2] && /^Press banca/i.test(e[0]));
