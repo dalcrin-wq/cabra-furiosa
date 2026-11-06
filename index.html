@@ -465,7 +465,7 @@ nav.tabs button{transition:color .2s}
 
 /* ══ Cronómetro de sprint ══ */
 .sw{display:flex;flex-direction:column;align-items:center;margin-top:30px}
-.swbtn{position:relative;width:min(66vw,250px);aspect-ratio:1;border-radius:50%;padding:0;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+.swbtn{position:relative;width:min(66vw,250px);aspect-ratio:1;border-radius:50%;padding:0;touch-action:none;-webkit-user-select:none;user-select:none;
   background:radial-gradient(circle at 50% 38%,#2a3853,#111826 72%);color:var(--txt);display:flex;flex-direction:column;align-items:center;justify-content:center;
   box-shadow:0 0 0 7px #2b3850,0 0 0 11px var(--vis),inset 0 2px 0 rgba(255,255,255,.08),0 18px 36px -12px rgba(255,127,58,.6);transition:transform .08s,box-shadow .2s}
 .swbtn:active{transform:scale(.97)}
@@ -485,7 +485,18 @@ nav.tabs button{transition:color .2s}
 .swbtn.cd .swt{color:var(--ember)}
 @keyframes swPulse{50%{box-shadow:0 0 0 7px #2b3850,0 0 0 11px var(--ok),0 0 60px 4px var(--ok)}}
 .swopt{display:flex;gap:8px;margin-top:16px}
-@media (prefers-reduced-motion:reduce){.swbtn.run{animation:none}}
+#swOv{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;touch-action:none;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:radial-gradient(circle at 50% 45%,#12331f,#070d0a 72%)}
+#swOv.show{display:flex}
+#swOv .swring{position:absolute;inset:12px;border-radius:30px;border:4px solid var(--ok);box-shadow:inset 0 0 50px -6px var(--ok);animation:swRing 1s ease-in-out infinite;pointer-events:none}
+#swOv b{position:relative;font-family:var(--disp);font-weight:900;font-size:min(34vw,210px);line-height:1;color:#fff;letter-spacing:-2px}
+#swOv span{position:relative;font-size:19px;font-weight:700;color:var(--ok);margin-top:10px}
+#swOv small{position:absolute;bottom:calc(34px + env(safe-area-inset-bottom,0px));font-size:14px;color:var(--mut)}
+#swOv.cd{background:radial-gradient(circle at 50% 45%,#3a190b,#0f0805 72%)}
+#swOv.cd .swring{border-color:var(--ember);box-shadow:inset 0 0 50px -6px var(--ember)}
+#swOv.cd b{color:var(--ember)} #swOv.cd span{color:var(--ember)}
+@keyframes swRing{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.swbtn.run,#swOv .swring{animation:none}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 </head>
@@ -2518,7 +2529,7 @@ function sessCardHTML(day, it, idx) {
 }
 /* ── Cronómetro de sprint: toca al salir, toca al llegar. Se registra en pointerdown (sin el retardo del click). ── */
 var SW = { id: "", run: false, t0: 0, raf: 0, last: null, cd: 0, cdT: null, manual: false };
-function swReset(id) { if (SW.raf) cancelAnimationFrame(SW.raf); clearTimeout(SW.cdT); SW = { id, run: false, t0: 0, raf: 0, last: null, cd: 0, cdT: null, manual: SW.manual && SW.id === id }; }
+function swReset(id) { if (SW.raf) cancelAnimationFrame(SW.raf); clearTimeout(SW.cdT); if ($("swOv")) $("swOv").classList.remove("show"); SW = { id, run: false, t0: 0, raf: 0, last: null, cd: 0, cdT: null, manual: SW.manual && SW.id === id }; }
 function swHTML() {
   const st = SW.cd ? "cd" : SW.run ? "run" : "";
   const big = SW.cd ? String(SW.cd) : SW.run ? "0,00" : SW.last != null ? fmtNum(SW.last, 2) : "0,00";
@@ -2529,28 +2540,35 @@ function swHTML() {
       <span class="swt num" id="swT">${big}</span><span class="swl" id="swL">${lbl}</span></button>
     <div class="swopt"><button class="chip ${S.swCd ? "on" : ""}" data-act="swCd">${S.swCd ? "✓ " : ""}Salida 3-2-1</button><button class="chip ${SW.manual ? "on" : ""}" data-act="swManual">✎ A mano</button></div></div>`;
 }
+/* Mientras corre (o cuenta atrás), toda la pantalla es el botón de parar: no hay que mirar dónde tocar. */
+function swOv(show) {
+  let o = $("swOv");
+  if (!o) { o = document.createElement("div"); o.id = "swOv"; o.innerHTML = '<div class="swring"></div><b id="swOT" class="num">0,00</b><span id="swOL"></span><small>Toca en cualquier parte de la pantalla</small>'; document.body.appendChild(o); }
+  o.classList.toggle("show", !!show); o.classList.toggle("cd", !!SW.cd);
+  if (show) { $("swOT").textContent = SW.cd ? SW.cd : "0,00"; $("swOL").textContent = SW.cd ? "Preparado…" : "Corre. Toca al llegar"; }
+}
 function swFrame() {
   if (!SW.run) return; const el = (performance.now() - SW.t0) / 1000;
-  const t = $("swT"), h = $("swH"); if (t) t.textContent = fmtNum(el, 2); if (h) h.style.transform = `rotate(${(el % 10) * 36}deg)`;
+  const t = $("swT"), h = $("swH"), ot = $("swOT"); if (t) t.textContent = fmtNum(el, 2); if (ot) ot.textContent = fmtNum(el, 2); if (h) h.style.transform = `rotate(${(el % 10) * 36}deg)`;
   SW.raf = requestAnimationFrame(swFrame);
 }
-function swGo() { SW.cd = 0; SW.run = true; SW.t0 = performance.now(); beep(1320, 120); buzz(40); const b = $("swBtn"); if (b) { b.className = "swbtn run"; $("swL").textContent = "Toca al llegar"; } swFrame(); }
+function swGo() { SW.cd = 0; SW.run = true; SW.t0 = performance.now(); beep(1320, 120); buzz(40); swOv(true); const b = $("swBtn"); if (b) { b.className = "swbtn run"; $("swL").textContent = "Toca al llegar"; } swFrame(); }
 function swTap() {
   if (!SS) return; const it = exItems(SS.day)[SS.i]; if (!it || it.k !== "s") return;
-  if (SW.cd) { clearTimeout(SW.cdT); SW.cd = 0; renderSess(); toast("Salida cancelada"); return; }
+  if (SW.cd) { clearTimeout(SW.cdT); SW.cd = 0; swOv(false); renderSess(); toast("Salida cancelada"); return; }
   if (!SW.run) {
     if (!S.swCd) { swGo(); return; }
-    SW.cd = 3; const b = $("swBtn"); if (b) b.className = "swbtn cd";
-    const step = () => { if (!SW.cd) return; const t = $("swT"); if (t) t.textContent = SW.cd; $("swL") && ($("swL").textContent = "Preparado…"); beep(660, 90); buzz(20);
+    SW.cd = 3; const b = $("swBtn"); if (b) b.className = "swbtn cd"; swOv(true);
+    const step = () => { if (!SW.cd) return; const t = $("swT"); if (t) t.textContent = SW.cd; $("swOT") && ($("swOT").textContent = SW.cd); $("swL") && ($("swL").textContent = "Preparado…"); beep(660, 90); buzz(20);
       SW.cdT = setTimeout(() => { SW.cd--; if (SW.cd > 0) step(); else swGo(); }, 1000); };
     step(); return;
   }
-  const el = (performance.now() - SW.t0) / 1000; SW.run = false; cancelAnimationFrame(SW.raf); buzz([30, 40, 30]);
+  const el = (performance.now() - SW.t0) / 1000; SW.run = false; cancelAnimationFrame(SW.raf); buzz([30, 40, 30]); swOv(false);
   if (el < 2) { renderSess(); toast("Menos de 2 segundos: parece un toque sin querer. No lo anoto."); return; }
   const v = +el.toFixed(2); SW.last = v; inpFor(it).sec = v; beep(990, 140);
   logSet();
 }
-document.addEventListener("pointerdown", e => { if (e.target.closest && e.target.closest("#swBtn")) { e.preventDefault(); swTap(); } });
+document.addEventListener("pointerdown", e => { if (e.target.closest && e.target.closest("#swBtn, #swOv.show")) { e.preventDefault(); swTap(); } });
 function qnavHTML(day, idx) {          // navegación rápida justo bajo el título; se queda pegada arriba al hacer scroll
   const ex = exItems(day), n = ex.length + (day.wod ? 1 : 0), nx = idx + 1 < ex.length ? ex[idx + 1].name : idx + 1 === ex.length && day.wod ? "WOD final" : "";
   return `<div class="qnav"><button data-act="sNav" data-d="-1" ${idx === 0 ? "disabled" : ""} aria-label="Ejercicio anterior">‹</button>
