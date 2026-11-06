@@ -462,6 +462,30 @@ nav.tabs button{transition:color .2s}
 #sess.show{animation:sessIn .3s cubic-bezier(.2,.9,.25,1.05) both}
 @keyframes sessIn{from{opacity:0;transform:translateY(30px) scale(.98)}}
 @media (prefers-reduced-motion:reduce){.st,.cmap.wave .cell,.vbar.grow .tr,.days .day.drop,.logbtn,.zap::after{animation:none!important}}
+
+/* ══ Cronómetro de sprint ══ */
+.sw{display:flex;flex-direction:column;align-items:center;margin-top:30px}
+.swbtn{position:relative;width:min(66vw,250px);aspect-ratio:1;border-radius:50%;padding:0;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  background:radial-gradient(circle at 50% 38%,#2a3853,#111826 72%);color:var(--txt);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 0 0 7px #2b3850,0 0 0 11px var(--vis),inset 0 2px 0 rgba(255,255,255,.08),0 18px 36px -12px rgba(255,127,58,.6);transition:transform .08s,box-shadow .2s}
+.swbtn:active{transform:scale(.97)}
+.swbtn::before{content:"";position:absolute;top:-34px;left:50%;width:40px;height:20px;margin-left:-20px;border-radius:7px 7px 3px 3px;background:linear-gradient(#ffd27a,var(--vis2));box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.swbtn::after{content:"";position:absolute;top:-15px;left:50%;width:14px;height:12px;margin-left:-7px;background:#c7d0db}
+.swbtn .side{position:absolute;top:5%;right:9%;width:20px;height:12px;border-radius:3px;background:#c7d0db;transform:rotate(45deg)}
+.swbtn svg{position:absolute;inset:6%;width:88%;height:88%;pointer-events:none}
+.swbtn .tk{fill:none;stroke:#3a4a68;stroke-width:3;stroke-dasharray:.6 4.112}
+.swbtn .tk5{fill:none;stroke:#8391a7;stroke-width:5;stroke-dasharray:1 22.56}
+.swbtn .hand{position:absolute;left:50%;top:8%;width:5px;height:14%;margin-left:-2.5px;border-radius:3px;background:var(--vis);transform-origin:50% 300%;pointer-events:none}
+.swbtn .swt{position:relative;font-family:var(--disp);font-weight:900;font-size:clamp(48px,16vw,68px);line-height:1;letter-spacing:-1px}
+.swbtn .swl{position:relative;font-size:13px;font-weight:600;color:var(--mut);margin-top:6px}
+.swbtn.run{box-shadow:0 0 0 7px #2b3850,0 0 0 11px var(--ok),0 0 40px -2px var(--ok);animation:swPulse 1s ease-in-out infinite}
+.swbtn.run .hand{background:var(--ok)}
+.swbtn.run .swl{color:var(--ok)}
+.swbtn.cd{box-shadow:0 0 0 7px #2b3850,0 0 0 11px var(--ember),0 0 36px -4px var(--ember)}
+.swbtn.cd .swt{color:var(--ember)}
+@keyframes swPulse{50%{box-shadow:0 0 0 7px #2b3850,0 0 0 11px var(--ok),0 0 60px 4px var(--ok)}}
+.swopt{display:flex;gap:8px;margin-top:16px}
+@media (prefers-reduced-motion:reduce){.swbtn.run{animation:none}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 </head>
@@ -2410,6 +2434,7 @@ document.addEventListener("click", e => {          // golpecito al número de lo
    ══════════════════════════════════════════════════════════════ */
 let SS = null;   // { dk, day, i, inp:{}, list:false, t0 }
 function sessOpen(dk, idx, k2) {
+  swReset("");
   const day = buildDay(dk, k2), ex = exItems(day);
   if (!ex.length && !day.wod) { openDay(dk); return; }
   let i = 0;
@@ -2463,7 +2488,10 @@ function sessCardHTML(day, it, idx) {
   if (it.k === "w") steppers = `<div class="steppers">${stp("kg", "Kilos", inc >= 2.5 ? 2.5 : inc >= 2 ? 2 : 1, x => fmtNum(x))}${stp("reps", "Repeticiones", 1, x => x)}</div>`;
   else if (it.k === "bw") steppers = `<div class="steppers one">${stp("reps", "Repeticiones", 1, x => x)}</div>`;
   else if (it.k === "t") steppers = `<div class="steppers one">${stp("sec", "Segundos", 5, x => Math.round(x))}</div>`;
-  else steppers = `<div class="steppers one">${stp("sec", "Segundos (60 m, 40 m…)", 0.05, x => fmtNum(x, 2))}</div>`;
+  else {                                  // sprint: cronómetro grande; a mano solo si se pide
+    if (SW.id !== it.id + "|" + dk) swReset(it.id + "|" + dk);
+    steppers = swHTML() + (SW.manual ? `<div class="steppers one" style="margin-top:14px">${stp("sec", "Segundos (60 m, 40 m…)", 0.05, x => fmtNum(x, 2))}</div>` : "");
+  }
   const rir = it.k === "s" ? "" : `<div class="rir">${[0, 1, 2].map(c => `<button class="${v.rir === c ? "on" : ""}" data-act="rir" data-c="${c}"><b>${RIR_ICO[c]}</b>${RIR_LBL[c]}</button>`).join("")}</div>`;
   const chips = r ? `<div class="sets" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">${r.sets.map((s, i) => `<span class="chip x ${r.pr && recBest(r).set === s ? "on" : ""}"><button class="lbl" data-act="setEdit" data-id="${it.id}" data-dk="${SS.dk}" data-i="${i}" aria-label="Editar serie">${i + 1}. ${fmtSet(it.k, s)}${it.k !== "s" ? " " + RIR_ICO[(it.k === "w" ? s[2] : s[1]) ?? 1] : ""}</button><button class="del" data-act="sDel" data-i="${i}" aria-label="Borrar serie">✕</button></span>`).join("")}</div>` : "";
   const lastTxt = rc.last ? rc.last.sets.map(s => fmtSet(it.k, s)).join(" · ") : "—";
@@ -2482,12 +2510,47 @@ function sessCardHTML(day, it, idx) {
       ${steppers}${rir}
       ${it.k === "w" || it.k === "bw" ? `<button class="techtog ${v.tech === 0 ? "off" : ""}" data-act="techTog">${v.tech === 0 ? "✗ Técnica o recorrido roto: no cuenta para progresar" : "✓ Técnica y recorrido completo"}</button>` : ""}
       ${it.id === "squat" || it.id === "goblet" ? `<div class="tiny mut" style="margin-top:6px">Fondo: pliegue de la cadera por debajo de la rodilla, talones clavados. Si hoy no llegas, marca técnica rota: la app baja un 5% y no te persigue con kilos que no son tuyos.</div>` : ""}
-      <button class="btn logbtn" data-act="logSet">Serie ${done + 1}${need && !sc.max ? " de " + need : ""} hecha</button>
+      ${it.k !== "s" || SW.manual ? `<button class="btn logbtn" data-act="logSet">Serie ${done + 1}${need && !sc.max ? " de " + need : ""} hecha</button>` : ""}
       <div id="restBox"></div>
       ${chips}
     </section>
     <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="chip" data-act="exSwap" data-dk="${dk}" data-name="${esc(it.orig || it.name)}">⇄ Cambiar ejercicio</button>${it.rest ? `<button class="chip" data-act="restGo" data-s="${restFor(it)}">⏱ Descanso ${fmtT(restFor(it))}</button>` : ""}</div>`;
 }
+/* ── Cronómetro de sprint: toca al salir, toca al llegar. Se registra en pointerdown (sin el retardo del click). ── */
+var SW = { id: "", run: false, t0: 0, raf: 0, last: null, cd: 0, cdT: null, manual: false };
+function swReset(id) { if (SW.raf) cancelAnimationFrame(SW.raf); clearTimeout(SW.cdT); SW = { id, run: false, t0: 0, raf: 0, last: null, cd: 0, cdT: null, manual: SW.manual && SW.id === id }; }
+function swHTML() {
+  const st = SW.cd ? "cd" : SW.run ? "run" : "";
+  const big = SW.cd ? String(SW.cd) : SW.run ? "0,00" : SW.last != null ? fmtNum(SW.last, 2) : "0,00";
+  const lbl = SW.cd ? "Preparado…" : SW.run ? "Toca al llegar" : SW.last != null ? "Anotado · toca para el siguiente" : "Toca para salir";
+  return `<div class="sw"><button id="swBtn" class="swbtn ${st}" type="button" aria-label="Cronómetro de sprint">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="45" class="tk"/><circle cx="50" cy="50" r="45" class="tk5"/></svg>
+      <i class="side"></i><i class="hand" id="swH"></i>
+      <span class="swt num" id="swT">${big}</span><span class="swl" id="swL">${lbl}</span></button>
+    <div class="swopt"><button class="chip ${S.swCd ? "on" : ""}" data-act="swCd">${S.swCd ? "✓ " : ""}Salida 3-2-1</button><button class="chip ${SW.manual ? "on" : ""}" data-act="swManual">✎ A mano</button></div></div>`;
+}
+function swFrame() {
+  if (!SW.run) return; const el = (performance.now() - SW.t0) / 1000;
+  const t = $("swT"), h = $("swH"); if (t) t.textContent = fmtNum(el, 2); if (h) h.style.transform = `rotate(${(el % 10) * 36}deg)`;
+  SW.raf = requestAnimationFrame(swFrame);
+}
+function swGo() { SW.cd = 0; SW.run = true; SW.t0 = performance.now(); beep(1320, 120); buzz(40); const b = $("swBtn"); if (b) { b.className = "swbtn run"; $("swL").textContent = "Toca al llegar"; } swFrame(); }
+function swTap() {
+  if (!SS) return; const it = exItems(SS.day)[SS.i]; if (!it || it.k !== "s") return;
+  if (SW.cd) { clearTimeout(SW.cdT); SW.cd = 0; renderSess(); toast("Salida cancelada"); return; }
+  if (!SW.run) {
+    if (!S.swCd) { swGo(); return; }
+    SW.cd = 3; const b = $("swBtn"); if (b) b.className = "swbtn cd";
+    const step = () => { if (!SW.cd) return; const t = $("swT"); if (t) t.textContent = SW.cd; $("swL") && ($("swL").textContent = "Preparado…"); beep(660, 90); buzz(20);
+      SW.cdT = setTimeout(() => { SW.cd--; if (SW.cd > 0) step(); else swGo(); }, 1000); };
+    step(); return;
+  }
+  const el = (performance.now() - SW.t0) / 1000; SW.run = false; cancelAnimationFrame(SW.raf); buzz([30, 40, 30]);
+  if (el < 2) { renderSess(); toast("Menos de 2 segundos: parece un toque sin querer. No lo anoto."); return; }
+  const v = +el.toFixed(2); SW.last = v; inpFor(it).sec = v; beep(990, 140);
+  logSet();
+}
+document.addEventListener("pointerdown", e => { if (e.target.closest && e.target.closest("#swBtn")) { e.preventDefault(); swTap(); } });
 function qnavHTML(day, idx) {          // navegación rápida justo bajo el título; se queda pegada arriba al hacer scroll
   const ex = exItems(day), n = ex.length + (day.wod ? 1 : 0), nx = idx + 1 < ex.length ? ex[idx + 1].name : idx + 1 === ex.length && day.wod ? "WOD final" : "";
   return `<div class="qnav"><button data-act="sNav" data-d="-1" ${idx === 0 ? "disabled" : ""} aria-label="Ejercicio anterior">‹</button>
@@ -2899,6 +2962,8 @@ const ACT = {
   exSwapPick: d => { S.exswap[d.dk] = S.exswap[d.dk] || {}; if (d.n) S.exswap[d.dk][d.o] = d.n; else { delete S.exswap[d.dk][d.o]; if (!Object.keys(S.exswap[d.dk]).length) delete S.exswap[d.dk]; } save(); closeSheet(); if (SS) renderSess(); render({ keepScroll: true }); },
   km: d => inputSheet("Kilómetros", "Los del Garmin. Vacío para borrar.", S.km[d.dk] ? fmtNum(S.km[d.dk]) : "", v => { const n = parseFloat(String(v).replace(",", ".")); if (n > 0) S.km[d.dk] = n; else delete S.km[d.dk]; save(); render({ keepScroll: true }); }, { num: true }),
   note: d => inputSheet("Nota del día", "Vacío para borrar.", S.diary[d.dk] || "", v => { if (v) S.diary[d.dk] = v; else delete S.diary[d.dk]; save(); render({ keepScroll: true }); }),
+  swCd: () => { S.swCd = !S.swCd; save(); renderSess(); toast(S.swCd ? "Salida con cuenta atrás: 3, 2, 1… ¡ya!" : "Salida al tocar"); },
+  swManual: () => { SW.manual = !SW.manual; renderSess(); },
   setEdit: d => setEditSheet(d.id, d.dk, +d.i, d.from),
   seTech: (d, el) => { const off = el.classList.toggle("off"); el.textContent = off ? "✗ Técnica o recorrido roto" : "✓ Técnica y recorrido completo"; },
   setEditOk: d => {
