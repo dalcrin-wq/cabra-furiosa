@@ -497,6 +497,23 @@ nav.tabs button{transition:color .2s}
 #swOv.cd b{color:var(--ember)} #swOv.cd span{color:var(--ember)}
 @keyframes swRing{50%{opacity:.55}}
 @media (prefers-reduced-motion:reduce){.swbtn.run,#swOv .swring{animation:none}}
+
+/* ══ Cuenta atrás de ejercicios de tiempo ══ */
+.swbtn.pt{box-shadow:0 0 0 7px #2b3850,0 0 0 11px var(--r,#4cc3ff),inset 0 2px 0 rgba(255,255,255,.08),0 18px 36px -12px rgba(76,195,255,.5)}
+.swbtn.pt::before{background:linear-gradient(#9fe3ff,#4cc3ff)}
+#ptOv{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;touch-action:none;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;background:radial-gradient(circle at 50% 45%,#0f2a3a,#060c12 72%)}
+#ptOv.show{display:flex}
+#ptOv .ptr{position:absolute;width:min(86vw,58vh);aspect-ratio:1;transform:rotate(-90deg);pointer-events:none}
+#ptOv .ptr circle{fill:none;stroke-width:5}
+#ptOv .ptr .bg{stroke:#1e2d40}
+#ptOv .ptr .fg{stroke:#4cc3ff;stroke-linecap:round;stroke-dasharray:276.5;stroke-dashoffset:0;filter:drop-shadow(0 0 6px #4cc3ff)}
+#ptOv b{position:relative;font-family:var(--disp);font-weight:900;font-size:min(36vw,220px);line-height:1;color:#fff}
+#ptOv span{position:relative;font-size:19px;font-weight:700;color:#4cc3ff;margin-top:8px}
+#ptOv small{position:absolute;bottom:calc(34px + env(safe-area-inset-bottom,0px));font-size:14px;color:var(--mut)}
+#ptOv.prep,#ptOv.switch{background:radial-gradient(circle at 50% 45%,#3a190b,#0f0805 72%)}
+#ptOv.prep .fg,#ptOv.switch .fg{stroke:var(--ember);filter:drop-shadow(0 0 6px var(--ember))}
+#ptOv.prep b,#ptOv.switch b,#ptOv.prep span,#ptOv.switch span{color:var(--ember)}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 </head>
@@ -2445,7 +2462,7 @@ document.addEventListener("click", e => {          // golpecito al número de lo
    ══════════════════════════════════════════════════════════════ */
 let SS = null;   // { dk, day, i, inp:{}, list:false, t0 }
 function sessOpen(dk, idx, k2) {
-  swReset("");
+  swReset(""); ptReset("");
   const day = buildDay(dk, k2), ex = exItems(day);
   if (!ex.length && !day.wod) { openDay(dk); return; }
   let i = 0;
@@ -2498,7 +2515,10 @@ function sessCardHTML(day, it, idx) {
   let steppers;
   if (it.k === "w") steppers = `<div class="steppers">${stp("kg", "Kilos", inc >= 2.5 ? 2.5 : inc >= 2 ? 2 : 1, x => fmtNum(x))}${stp("reps", "Repeticiones", 1, x => x)}</div>`;
   else if (it.k === "bw") steppers = `<div class="steppers one">${stp("reps", "Repeticiones", 1, x => x)}</div>`;
-  else if (it.k === "t") steppers = `<div class="steppers one">${stp("sec", "Segundos", 5, x => Math.round(x))}</div>`;
+  else if (it.k === "t") {               // ejercicio de tiempo: objetivo + cuenta atrás a pantalla completa
+    if (PT.id !== it.id + "|" + dk) ptReset(it.id + "|" + dk);
+    steppers = `<div class="steppers one">${stp("sec", ptSide(it) ? "Objetivo · segundos por lado" : "Objetivo · segundos", 5, x => Math.round(x))}</div>` + ptHTML(it, v);
+  }
   else {                                  // sprint: cronómetro grande; a mano solo si se pide
     if (SW.id !== it.id + "|" + dk) swReset(it.id + "|" + dk);
     steppers = swHTML() + (SW.manual ? `<div class="steppers one" style="margin-top:14px">${stp("sec", "Segundos (60 m, 40 m…)", 0.05, x => fmtNum(x, 2))}</div>` : "");
@@ -2521,7 +2541,7 @@ function sessCardHTML(day, it, idx) {
       ${steppers}${rir}
       ${it.k === "w" || it.k === "bw" ? `<button class="techtog ${v.tech === 0 ? "off" : ""}" data-act="techTog">${v.tech === 0 ? "✗ Técnica o recorrido roto: no cuenta para progresar" : "✓ Técnica y recorrido completo"}</button>` : ""}
       ${it.id === "squat" || it.id === "goblet" ? `<div class="tiny mut" style="margin-top:6px">Fondo: pliegue de la cadera por debajo de la rodilla, talones clavados. Si hoy no llegas, marca técnica rota: la app baja un 5% y no te persigue con kilos que no son tuyos.</div>` : ""}
-      ${it.k !== "s" || SW.manual ? `<button class="btn logbtn" data-act="logSet">Serie ${done + 1}${need && !sc.max ? " de " + need : ""} hecha</button>` : ""}
+      ${(it.k !== "s" || SW.manual) && (it.k !== "t" || PT.manual) ? `<button class="btn logbtn" data-act="logSet">Serie ${done + 1}${need && !sc.max ? " de " + need : ""} hecha</button>` : ""}
       <div id="restBox"></div>
       ${chips}
     </section>
@@ -2529,6 +2549,63 @@ function sessCardHTML(day, it, idx) {
 }
 /* ── Cronómetro de sprint: toca al salir, toca al llegar. Se registra en pointerdown (sin el retardo del click). ── */
 var SW = { id: "", run: false, t0: 0, raf: 0, last: null, cd: 0, cdT: null, manual: false };
+/* ── Cuenta atrás para ejercicios de tiempo (planchas…): 5" para colocarte, el objetivo a pantalla completa,
+   cambio de lado si va «por lado», y la serie se anota sola. Un toque en cualquier sitio corta antes. ── */
+var PT = { id: "", ph: "idle", t0: 0, dur: 0, side: 1, raf: 0, manual: false, beeped: -1 };
+const PT_PREP = 5, PT_SWITCH = 5;
+const ptSide = it => /lado/i.test(it.scheme || "") || /lateral/i.test(it.name);
+function ptReset(id) { if (PT.raf) cancelAnimationFrame(PT.raf); if ($("ptOv")) $("ptOv").classList.remove("show"); PT = { id, ph: "idle", t0: 0, dur: 0, side: 1, raf: 0, manual: PT.manual && PT.id === id, beeped: -1 }; }
+function ptHTML(it, v) {
+  const sec = Math.round(v.sec || 30), side = ptSide(it);
+  return `<div class="sw"><button id="ptBtn" class="swbtn pt" type="button" aria-label="Empezar cuenta atrás">
+      <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="45" class="tk"/><circle cx="50" cy="50" r="45" class="tk5"/></svg>
+      <span class="swt num">${sec}"</span><span class="swl">${side ? "por lado · " : ""}toca y colócate</span></button>
+    <div class="swopt"><button class="chip ${PT.manual ? "on" : ""}" data-act="ptManual">✎ A mano</button></div></div>`;
+}
+function ptOv(show) {
+  let o = $("ptOv");
+  if (!o) { o = document.createElement("div"); o.id = "ptOv"; o.innerHTML = '<svg viewBox="0 0 100 100" class="ptr"><circle cx="50" cy="50" r="44" class="bg"/><circle cx="50" cy="50" r="44" class="fg" id="ptArc"/></svg><b id="ptT" class="num">0</b><span id="ptL"></span><small>Toca en cualquier parte para terminar antes</small>'; document.body.appendChild(o); }
+  o.classList.toggle("show", !!show);
+}
+function ptTap() {
+  if (!SS) return; const it = exItems(SS.day)[SS.i]; if (!it || it.k !== "t") return;
+  if (PT.ph === "idle") {
+    const v = inpFor(it); $("sess").querySelectorAll('input[data-f="sec"]').forEach(inp => { const n = parseFloat(String(inp.value).replace(",", ".")); if (n > 0) v.sec = n; });
+    PT.dur = Math.max(5, Math.round(v.sec || 30)); PT.side = 1; PT.ph = "prep"; PT.t0 = performance.now(); PT.beeped = -1;
+    ptOv(true); beep(660, 90); buzz(20); ptFrame(); return;
+  }
+  if (PT.ph === "prep") { ptReset(PT.id); renderSess(); toast("Cuenta atrás cancelada"); return; }
+  // cortar antes: se anota lo aguantado en el lado actual
+  const el = (performance.now() - PT.t0) / 1000, done = PT.ph === "switch" ? PT.dur : Math.min(PT.dur, el);
+  ptFinish(done);
+}
+function ptFinish(sec) {
+  const it = exItems(SS.day)[SS.i]; cancelAnimationFrame(PT.raf); ptOv(false); const id = PT.id; PT.ph = "idle";
+  if (sec < 5) { ptReset(id); renderSess(); toast("Menos de 5 segundos: no lo anoto."); return; }
+  inpFor(it).sec = Math.round(sec); beep(1200, 300, 3); buzz([100, 60, 100, 60, 200]);
+  ptReset(id); logSet();
+}
+function ptFrame() {
+  if (PT.ph === "idle") return;
+  const el = (performance.now() - PT.t0) / 1000;
+  const len = PT.ph === "prep" ? PT_PREP : PT.ph === "switch" ? PT_SWITCH : PT.dur, rem = Math.max(0, len - el), c = Math.ceil(rem);
+  if (rem <= 3 && rem > 0 && c !== PT.beeped) { PT.beeped = c; beep(PT.ph === "run" ? 880 : 520, 80); buzz(15); }
+  const it = SS && exItems(SS.day)[SS.i], side = it && ptSide(it);
+  const o = $("ptOv"), T = $("ptT"), L = $("ptL"), A = $("ptArc");
+  if (o) o.className = "show " + PT.ph;
+  if (T) T.textContent = c;
+  if (L) L.textContent = PT.ph === "prep" ? "Colócate…" : PT.ph === "switch" ? "Cambia de lado" : side ? `¡Aguanta! · lado ${PT.side}` : "¡Aguanta!";
+  if (A) A.style.strokeDashoffset = (276.5 * (1 - rem / len)).toFixed(1);
+  if (rem <= 0) {
+    if (PT.ph === "prep") { PT.ph = "run"; PT.t0 = performance.now(); PT.beeped = -1; beep(1320, 140); buzz(40); }
+    else if (PT.ph === "run" && side && PT.side === 1) { PT.ph = "switch"; PT.t0 = performance.now(); PT.beeped = -1; beep(990, 160, 2); buzz([60, 40, 60]); }
+    else if (PT.ph === "switch") { PT.ph = "run"; PT.side = 2; PT.t0 = performance.now(); PT.beeped = -1; beep(1320, 140); buzz(40); }
+    else { ptFinish(PT.dur); return; }
+  }
+  PT.raf = requestAnimationFrame(ptFrame);
+}
+document.addEventListener("pointerdown", e => { if (e.target.closest && e.target.closest("#ptBtn, #ptOv.show")) { e.preventDefault(); ptTap(); } });
+document.addEventListener("input", e => { if (e.target.matches && e.target.matches('#sess input[data-f="sec"]') && $("ptBtn")) { const n = parseFloat(String(e.target.value).replace(",", ".")); if (n > 0) $("ptBtn").querySelector(".swt").textContent = Math.round(n) + '"'; } });
 function swReset(id) { if (SW.raf) cancelAnimationFrame(SW.raf); clearTimeout(SW.cdT); if ($("swOv")) $("swOv").classList.remove("show"); SW = { id, run: false, t0: 0, raf: 0, last: null, cd: 0, cdT: null, manual: SW.manual && SW.id === id }; }
 function swHTML() {
   const st = SW.cd ? "cd" : SW.run ? "run" : "";
@@ -2595,6 +2672,7 @@ function stpChange(field, step) {
   let x = (+v[field] || 0) + step;
   if (field === "reps") x = Math.max(1, Math.round(x)); else if (field === "sec") x = Math.max(it.k === "s" ? 1 : 5, +x.toFixed(2)); else x = Math.max(0, +x.toFixed(2));
   v[field] = x;
+  const pb = $("ptBtn"); if (pb && field === "sec") pb.querySelector(".swt").textContent = Math.round(x) + '"';
   const inp = $("sess").querySelector(`input[data-f="${field}"]`); if (inp) { inp.value = field === "kg" ? fmtNum(x) : field === "sec" && it.k === "s" ? fmtNum(x, 2) : Math.round(x); inp.animate([{ transform: "scale(1.15)" }, { transform: "scale(1)" }], { duration: 180 }); }
   buzz(8);
 }
@@ -2982,6 +3060,7 @@ const ACT = {
   note: d => inputSheet("Nota del día", "Vacío para borrar.", S.diary[d.dk] || "", v => { if (v) S.diary[d.dk] = v; else delete S.diary[d.dk]; save(); render({ keepScroll: true }); }),
   swCd: () => { S.swCd = !S.swCd; save(); renderSess(); toast(S.swCd ? "Salida con cuenta atrás: 3, 2, 1… ¡ya!" : "Salida al tocar"); },
   swManual: () => { SW.manual = !SW.manual; renderSess(); },
+  ptManual: () => { PT.manual = !PT.manual; renderSess(); },
   setEdit: d => setEditSheet(d.id, d.dk, +d.i, d.from),
   seTech: (d, el) => { const off = el.classList.toggle("off"); el.textContent = off ? "✗ Técnica o recorrido roto" : "✓ Técnica y recorrido completo"; },
   setEditOk: d => {
