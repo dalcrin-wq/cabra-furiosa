@@ -514,6 +514,9 @@ nav.tabs button{transition:color .2s}
 #ptOv.prep,#ptOv.switch{background:radial-gradient(circle at 50% 45%,#3a190b,#0f0805 72%)}
 #ptOv.prep .fg,#ptOv.switch .fg{stroke:var(--ember);filter:drop-shadow(0 0 6px var(--ember))}
 #ptOv.prep b,#ptOv.switch b,#ptOv.prep span,#ptOv.switch span{color:var(--ember)}
+
+.wcfg{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:10px 0 4px;padding:10px 12px;border-radius:var(--r2);background:var(--p2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--vis) 45%,transparent);font-weight:700;font-size:15px;text-align:left}
+.wcfg span{font-size:12.5px;font-weight:600;color:var(--vis)}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 </head>
@@ -1072,7 +1075,7 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&a
 let S = null;
 function blank() {
   return { v: 3, startDate: null, done: {}, energy: {}, body: [], hist: {}, rm: {}, km: {}, swap: {}, exswap: {}, exadd: {}, wodDone: {}, wodRoll: {},
-    wodAlt: {}, expair: {}, exRoll: {}, mat: {}, free: {}, guardOv: {}, diary: {}, badges: {}, rescue: {}, dbl: {}, rpe: {}, pain: {}, painAM: {}, zone: "", reviews: {}, food: {}, goal: { rate: -0.5 }, age: 45, h: 182, lastExport: null, migrated: null };
+    wodAlt: {}, expair: {}, exRoll: {}, mat: {}, free: {}, guardOv: {}, diary: {}, badges: {}, rescue: {}, dbl: {}, wodCustom: {}, wodPref: {}, rpe: {}, pain: {}, painAM: {}, zone: "", reviews: {}, food: {}, goal: { rate: -0.5 }, age: 45, h: 182, lastExport: null, migrated: null };
 }
 function load() {
   let raw = null;
@@ -1239,6 +1242,135 @@ function wodOpt(bias, okMat, rnd, f, excl) {
     default: return { f: "Death by", txt: `${mv[0][0]}: minuto 1 = 1 rep, +1 cada minuto hasta que no dé.`, d: "12'+", tm: ["emom", [15]], res: "Minuto de caída" };
   }
 }
+
+/* ══ WOD a medida ═══════════════════════════════════════════════════════════
+   Tres propuestas distintas según DÓNDE (material disponible) y QUÉ (enfoque). Intensidad sostenida
+   (RPE 6-7: al acabar cada ronda puedes decir una frase corta). El dado evita lo que acabas de ver. */
+const WP_PLACES = { casa: ["🏠 Casa", ["bw", "db", "kb", "bag", "bar", "bench", "stairs", "rope", "barbell"]],
+  parque: ["🚒 Parque", ["bw", "db", "bar", "bench", "stairs", "row", "bike", "cable", "ball", "barbell", "run"]],
+  fuera: ["🌳 Fuera", ["bw", "bar", "bench", "stairs", "run"]] };
+const WP_FOCUS = { bombero: ["🧯 Bombero", ["carry", "drag", "climb", "hinge", "grip", "squat", "engine"], "Cargar, arrastrar, subir y agarrar: lo que pide el trabajo."],
+  motor: ["🫀 Motor", ["engine", "climb", "squat", "core"], "Cardio sostenido para el motor, sin picos máximos."],
+  superior: ["💪 Tren superior", ["push", "pull", "grip", "core"], "Empujes y tirones alternos para pecho, espalda, hombro y brazo."],
+  piernas: ["🦵 Piernas y cadera", ["squat", "hinge", "climb", "engine"], "Sentadillas, bisagras y subidas sin cargar la espalda."],
+  core: ["🧱 Core", ["core", "carry", "grip"], "Tronco firme: antiextensión, antirrotación y cargas."],
+  completo: ["⚙️ Todo el cuerpo", ["squat", "hinge", "push", "pull", "core", "engine", "carry"], "Un poco de todo, bien repartido."] };
+// [nombre, cantidad por bloque de ~35", unidad r|m|s|cal, patrón, material (cualquiera de)]
+const WP_MOVES = [
+  ["Paseo del granjero con las 2 mancuernas más pesadas", 40, "m", "carry", ["db"]],
+  ["Paseo con la mochila lastrada abrazada al pecho", 40, "m", "carry", ["bag"]],
+  ["Paseo de camarero (mancuerna arriba, brazo estirado)", 20, "m/brazo", "carry", ["db", "kb"]],
+  ["Paseo con el balón medicinal al pecho", 40, "m", "carry", ["ball"]],
+  ["Arrastre de mochila o rueda con cuerda, andando hacia atrás", 20, "m", "drag", ["bag"]],
+  ["Arrastre del oso (a cuatro patas, rodillas sin tocar)", 15, "m", "drag", ["bw"]],
+  ["Tracción de cuerda mano sobre mano (peso atado)", 15, "m", "drag", ["bag"]],
+  ["Subida de escaleras con mochila", 2, "pisos", "climb", ["stairs"]],
+  ["Subida de escaleras a paso vivo", 3, "pisos", "climb", ["stairs"]],
+  ["Step-ups al banco", 10, "por pierna", "climb", ["bench"]],
+  ["Step-ups al banco con mancuernas", 8, "por pierna", "climb", ["bench"]],
+  ["Sentadilla goblet", 12, "r", "squat", ["db", "kb"]],
+  ["Sentadilla al aire, controlada", 20, "r", "squat", ["bw"]],
+  ["Zancadas alternas", 16, "r", "squat", ["bw"]],
+  ["Zancadas con mancuernas", 12, "r", "squat", ["db"]],
+  ["Thrusters con mancuernas (la manguera al hombro)", 10, "r", "squat", ["db"]],
+  ["Lanzamientos a la pared con balón (wall ball)", 12, "r", "squat", ["ball"]],
+  ["Sentadilla búlgara", 8, "por pierna", "squat", ["bench"]],
+  ["Swings con kettlebell (o con una mancuerna)", 15, "r", "hinge", ["kb", "db"]],
+  ["Peso muerto con mancuernas", 12, "r", "hinge", ["db"]],
+  ["Peso muerto con la mochila", 12, "r", "hinge", ["bag"]],
+  ["Puente de glúteo a una pierna", 12, "por pierna", "hinge", ["bw"]],
+  ["Lanzamiento de balón al suelo (slam)", 12, "r", "hinge", ["ball"]],
+  ["Buenos días con la mochila al pecho", 12, "r", "hinge", ["bag"]],
+  ["Flexiones", 12, "r", "push", ["bw"]],
+  ["Flexiones con pies en el banco", 10, "r", "push", ["bench"]],
+  ["Fondos en el banco", 12, "r", "push", ["bench"]],
+  ["Press de hombros con mancuernas", 10, "r", "push", ["db"]],
+  ["Push press con mancuernas", 10, "r", "push", ["db"]],
+  ["Extensión de tríceps en polea", 15, "r", "push", ["cable"]],
+  ["Lanzamiento de balón al pecho contra la pared", 12, "r", "push", ["ball"]],
+  ["Dominadas (las que salgan limpias)", 5, "r", "pull", ["bar"]],
+  ["Remo invertido en barra baja", 10, "r", "pull", ["bar"]],
+  ["Remo con mancuerna", 10, "por brazo", "pull", ["db"]],
+  ["Remo renegado", 8, "por lado", "pull", ["db"]],
+  ["Remo en máquina", 12, "r", "pull", ["cable"]],
+  ["Jalón en máquina", 12, "r", "pull", ["cable"]],
+  ["Colgado de la barra", 30, "s", "grip", ["bar"]],
+  ["Paseo del granjero a una mano (cambia a mitad)", 30, "m", "grip", ["db"]],
+  ["Colgado de la barra a una mano alterna (pies apoyados)", 20, "s", "grip", ["bar"]],
+  ["Plancha", 40, "s", "core", ["bw"]],
+  ["Plancha lateral", 25, "s/lado", "core", ["bw"]],
+  ["Escaladores (mountain climbers) controlados", 30, "r", "core", ["bw"]],
+  ["Elevación de rodillas colgado", 10, "r", "core", ["bar"]],
+  ["Pallof en polea", 10, "por lado", "core", ["cable"]],
+  ["Giros rusos con balón", 20, "r", "core", ["ball"]],
+  ["Hollow hold", 25, "s", "core", ["bw"]],
+  ["Remo ergómetro", 250, "m", "engine", ["row"]],
+  ["Airbike a ritmo firme", 12, "cal", "engine", ["bike"]],
+  ["Comba", 60, "saltos", "engine", ["rope"]],
+  ["Trote suave", 200, "m", "engine", ["run"]],
+  ["Ida y vuelta 4 × 10 m", 1, "serie", "engine", ["run"]],
+  ["Burpees a ritmo controlado", 6, "r", "engine", ["bw"]],
+  ["Jumping jacks", 30, "r", "engine", ["bw"]]
+];
+const WP_FORMATS = [
+  ["emom12", "EMOM 12'", 3, "12'", ["emom", [12]], "¿Completado? Notas"],
+  ["emom16", "EMOM 16'", 4, "16'", ["emom", [16]], "¿Completado? Notas"],
+  ["rondas", "5 rondas de calidad", 3, "~15'", ["up", [18]], "Tiempo (mm:ss)"],
+  ["e2m", "Cada 2' × 6", 2, "12'", ["hiit", [90, 30, 6]], "¿Completado? Notas"],
+  ["escalera", "Escalera 2-4-6-8-10", 2, "~12'", ["up", [15]], "Tiempo (mm:ss)"],
+  ["amrap", "AMRAP 12' a ritmo de charla", 3, "12'", ["amrap", [12]], "Rondas + reps"],
+  ["i4020", "40/20 × 12", 3, "12'", ["hiit", [40, 20, 12]], "¿Completado? Notas"]
+];
+const wpQty = (m, k = 1) => { const q = Math.max(1, Math.round(m[1] * k)); const u = m[2]; return u === "r" ? q + "" : u === "s" ? q + "\"" : u === "s/lado" ? q + "\"/lado" : u === "m" ? q + " m" : q + " " + u; };
+const wpTxt = (m, k) => wpQty(m, k) + " · " + m[0].charAt(0).toLowerCase() + m[0].slice(1);
+function wodDefaults(key, dk) {
+  const id = dk + key, c = S.wodCustom[id] || {}, pref = S.wodPref || {};
+  const place = c.place || (isGuardia(dk) || /P$/.test(key) ? "parque" : key[0] === "X" ? "fuera" : pref.place || "casa");
+  const focus = c.focus || (["B", "BP", "XB", "WB"].includes(key) ? "bombero" : pref.focus || "completo");
+  return { place, focus };
+}
+function wodBuild(place, focus, seed, avoid) {
+  const eq = new Set(WP_PLACES[place][1]), pats = WP_FOCUS[focus][1];
+  const pool = WP_MOVES.filter(m => m[4].some(e => eq.has(e)));
+  const rnd = rng32(hstr(place + "·" + focus + "·" + seed));
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const usedSet = new Set();
+  const pickMove = (pat, local) => {
+    const tiers = [m => m[3] === pat && !local.has(m[0]) && !usedSet.has(m[0]) && !avoid.has(m[0]),
+      m => m[3] === pat && !local.has(m[0]) && !usedSet.has(m[0]),
+      m => pats.includes(m[3]) && !local.has(m[0]) && !usedSet.has(m[0]),
+      m => m[3] === pat && !local.has(m[0]) && !avoid.has(m[0]),
+      m => m[3] === pat && !local.has(m[0]),
+      m => pats.includes(m[3]) && !local.has(m[0]) && !usedSet.has(m[0]) && !avoid.has(m[0]),
+      m => pats.includes(m[3]) && !local.has(m[0]),
+      m => !local.has(m[0])];
+    for (const t of tiers) { const a = pool.filter(t); if (a.length) return a[Math.floor(rnd() * a.length)]; }
+    return pool[0];
+  };
+  const fmts = shuffle(WP_FORMATS.filter(f => !avoid.has("fmt:" + f[0]))).concat(shuffle(WP_FORMATS)).filter((f, i, a) => a.indexOf(f) === i).slice(0, 3);
+  return fmts.map(f => {
+    // cada formato arranca por lo que define el enfoque (un bombero sin cargar ni subir no es un WOD bombero)
+    const anchor = { bombero: [shuffle(["carry", "drag", "climb"])[0]], motor: ["engine"], superior: shuffle(["push", "pull"]), piernas: [shuffle(["squat", "hinge"])[0]], core: ["core"], completo: [] }[focus];
+    const rest = shuffle(pats.filter(x => !anchor.includes(x))), ps = anchor.concat(focus === "superior" ? rest : rest), local = new Set(), moves = [];
+    for (let i = 0; i < f[2]; i++) { let m = pickMove(ps[i % ps.length], local);
+      if (f[0] === "escalera" && m[2] !== "r") { const a = pool.filter(x => x[2] === "r" && pats.includes(x[3]) && !local.has(x[0])); if (a.length) m = a[Math.floor(rnd() * a.length)]; }
+      local.add(m[0]); usedSet.add(m[0]); moves.push(m); }
+    let txt;
+    if (f[0] === "emom12" || f[0] === "emom16") txt = moves.map((m, i) => `Min ${i + 1}: ${wpTxt(m)}`).join(". ") + `. ${f[0] === "emom12" ? "Cuatro" : "Cuatro"} vueltas; lo que sobre del minuto, respiras.`;
+    else if (f[0] === "rondas") txt = moves.map(m => wpTxt(m, 1.2)).join(" + ") + ". Sin ir contra el reloj: técnica limpia y respiración controlada.";
+    else if (f[0] === "e2m") txt = "En cada bloque: " + moves.map(m => wpTxt(m, 1.5)).join(" + ") + ". Trabajas ~1'30 y respiras hasta los 2'.";
+    else if (f[0] === "escalera") txt = `${moves.map(m => m[0].charAt(0).toLowerCase() + m[0].slice(1)).join(" y ")}: ${[0.2, 0.4, 0.6, 0.8, 1].map(k => Math.max(1, Math.round(moves[0][1] * k)) + "-" + Math.max(1, Math.round(moves[1][1] * k))).join(", ")}. A ritmo cómodo, sin parar mucho.`;
+    else if (f[0] === "amrap") txt = moves.map(m => wpTxt(m)).join(" + ") + ". Vueltas a ritmo constante, pudiendo decir frases cortas: no es una carrera.";
+    else txt = moves.map(m => m[0].charAt(0).toUpperCase() + m[0].slice(1)).join(" → ") + ". 40\" de trabajo y 20\" para cambiar, rotando. Ritmo sostenido.";
+    return { f: f[1], fid: f[0], txt, d: f[3], tm: f[4], res: f[5], moves: moves.map(m => m[0]), bombero: focus === "bombero", place, focus };
+  });
+}
+function wodCustomList(key, dk) {
+  const { place, focus } = wodDefaults(key, dk), seed = S.wodRoll[dk + key] || 0;
+  const prev = seed > 0 ? wodBuild(place, focus, seed - 1, new Set()) : [];
+  const avoid = new Set(prev.flatMap(w => w.moves.concat("fmt:" + w.fid)));
+  return wodBuild(place, focus, seed, avoid);
+}
 /* ── WOD bombero: trabajo de verdad (cargar, arrastrar, subir, agarrar) a ritmo sostenido, RPE 6-7.
    Formatos sin picos máximos: EMOM, rondas de calidad y bloques cada 2'. Material según dónde estés. */
 const WB_MOVES = [
@@ -1276,7 +1408,7 @@ function wodBombero(key, dk) {
 }
 const wodWeekDone = mon => { const ks = new Set([...Array(7).keys()].map(i => addDays(mon, i))); return Object.keys(S.wodDone).some(k => ks.has(k.slice(0, 10)) && S.wodDone[k]); };
 function genWod(key, dk) {
-  if (["B", "BP", "XB", "WB"].includes(key)) return wodBombero(key, dk);
+  if (["B", "BP", "XB", "WB"].includes(key) || S.wodCustom[dk + key]) return wodCustomList(key, dk);
   const bias = { A: "A", B: "B", G: "G", XA: "A", XB: "B", XG: "G", X: "A" }[key];
   if (!bias) return null;
   const fl = key[0] === "X" ? (S.mat[dk] || {}) : null;
@@ -2167,14 +2299,15 @@ function sessionBodyHTML(day) {
 }
 function wodHTML(day) {
   const dk = day.dk, sel = S.wodDone[dk + day.key];
-  return `<div class="sec"><div class="st">C. WOD final</div><div class="sd">${day.wod[0] && day.wod[0].bombero ? "WOD bombero, el de la semana: ritmo sostenido (esfuerzo 6-7/10, al acabar cada ronda puedes decir una frase corta). Cargar, arrastrar, subir, agarrar." : "El único de la semana, así que llega con gasolina. Elige uno de los tres."}</div></div>
+  const w0 = day.wod[0] || {}, cfg = w0.place ? `<button class="wcfg" data-act="wodCfg" data-dk="${dk}">${WP_PLACES[w0.place][0]} · ${WP_FOCUS[w0.focus][0]}<span>Cambiar</span></button>` : "";
+  return `<div class="sec"><div class="st">C. WOD final</div><div class="sd">${w0.place ? WP_FOCUS[w0.focus][2] + " Ritmo sostenido: esfuerzo 6-7/10, al acabar cada ronda puedes decir una frase corta." : "El único de la semana, así que llega con gasolina. Elige uno de los tres."}</div>${cfg}</div>
     ${day.wod.map((o, i) => { const on = sel && sel.i === i; return `<div class="wod ${on ? "pick" : ""}">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><b class="num" style="font-size:20px">${esc(o.f)}</b><span class="small mut">${esc(o.d)}</span></div>
       <div class="wt">${esc(o.txt)}</div>
       ${on && sel.r ? `<div class="wr">Tu marca: ${esc(sel.r)}</div>` : ""}
       <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="chip ${on ? "on" : ""}" data-act="wodPick" data-dk="${dk}" data-i="${i}">${on ? "✓ Hecho" : "Hacer este"}</button><button class="chip" data-act="wodTimer" data-dk="${dk}" data-i="${i}">⏱ Temporizador</button></div>
     </div>`; }).join("")}
-    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="chip" data-act="wodRoll" data-dk="${dk}">🎲 Otros tres</button>${canExtraWod(day.key) ? `<button class="chip" data-act="wodExtra" data-dk="${dk}">Cambiar por 2 ejercicios extra</button>` : ""}</div>`;
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="chip" data-act="wodRoll" data-dk="${dk}">🎲 Otros tres distintos</button><button class="chip" data-act="wodCfg" data-dk="${dk}">🎯 A medida</button>${canExtraWod(day.key) ? `<button class="chip" data-act="wodExtra" data-dk="${dk}">Cambiar por 2 ejercicios extra</button>` : ""}</div>`;
 }
 function volumeHTML(mon) {
   const { eff } = weekEffective(mon), plan = weekPlanned(mon);
@@ -2765,6 +2898,13 @@ function setEditSheet(id, dk, i, from) {
     <button class="btn ember" data-act="setEditDel" data-id="${id}" data-dk="${dk}" data-i="${i}" data-from="${from || ""}" style="margin-top:8px">Borrar esta serie</button>
     ${others > 1 ? `<button class="btn line" data-act="setDayDel" data-id="${id}" data-dk="${dk}" data-from="${from || ""}" style="margin-top:8px">Borrar las ${others} series de este día</button>` : ""}`);
 }
+function wodCfgSheet(dk, k2) {
+  const day = dayOf(dk, k2), { place, focus } = wodDefaults(day.key, dk);
+  openSheet(`<h2>WOD a medida</h2><p class="small mut" style="margin-bottom:10px">Dime dónde estás y qué quieres trabajar: te preparo tres propuestas distintas con ese material.</p>
+    <div style="font-weight:700">¿Dónde?</div><div class="pick three" id="wcPlace">${Object.entries(WP_PLACES).map(([k, v]) => `<button class="${k === place ? "on" : ""}" data-act="finPick" data-v="${k}"><b>${v[0].split(" ")[0]}</b>${v[0].split(" ").slice(1).join(" ")}</button>`).join("")}</div>
+    <div style="font-weight:700;margin-top:14px">¿Qué trabajamos?</div><div class="pick three" id="wcFocus">${Object.entries(WP_FOCUS).map(([k, v]) => `<button class="${k === focus ? "on" : ""}" data-act="finPick" data-v="${k}"><b>${v[0].split(" ")[0]}</b>${v[0].split(" ").slice(1).join(" ")}</button>`).join("")}</div>
+    <button class="btn" data-act="wodCfgGo" data-dk="${dk}" data-k="${k2 || ""}" style="margin-top:16px">Prepárame 3 propuestas</button>`);
+}
 function openSheet(html) { $("sheet").innerHTML = html; $("sheetOv").classList.add("show"); const f = $("sheet").querySelector("input,textarea"); if (f) setTimeout(() => f.focus(), 250); }
 function closeSheet() { $("sheetOv").classList.remove("show"); sheetCb = null; }
 function inputSheet(title, sub, val, cb, opt = {}) {
@@ -3081,6 +3221,11 @@ const ACT = {
     if (cur && cur.i === +d.i) { delete S.wodDone[k]; save(); if (SS) renderSess(); render({ keepScroll: true }); return; }
     S.wodDone[k] = { i: +d.i, r: "" }; save();
     inputSheet("Resultado: " + o.f, o.res + ". Opcional, pero es tu marca a batir cuando vuelva a salir.", "", v => { S.wodDone[k] = { i: +d.i, r: v }; save(); if (SS) renderSess(); render({ keepScroll: true }); toast(v ? "WOD registrado: " + v : "WOD hecho"); }); },
+  wodCfg: d => wodCfgSheet(d.dk, k2Of(d.dk, d.k)),
+  wodCfgGo: d => { const pk = id => { const b = $(id) && $(id).querySelector("button.on"); return b ? b.dataset.v : null; };
+    const place = pk("wcPlace") || "casa", focus = pk("wcFocus") || "completo", key = dayOf(d.dk, d.k || null).key, id = d.dk + key;
+    S.wodCustom[id] = { place, focus }; S.wodPref = { place, focus }; S.wodRoll[id] = (S.wodRoll[id] || 0) + 1; delete S.wodDone[id];
+    save(); closeSheet(); if (SS) renderSess(); render({ keepScroll: true }); toast(WP_PLACES[place][0] + " · " + WP_FOCUS[focus][0] + ": tres propuestas nuevas"); },
   wodTimer: d => { tmOpenMenu(d.dk, +d.i, d.k); },
   wodRoll: d => { const k = d.dk + dayOf(d.dk, d.k).key; S.wodRoll[k] = (S.wodRoll[k] || 0) + 1; save(); if (SS) renderSess(); render({ keepScroll: true }); toast("Tres WODs nuevos. El azar también entrena."); },
   wodExtra: d => { const key = dayOf(d.dk, d.k).key, p = suggestExtraPair(key, d.dk); if (!p.length) { toast("No encuentro extras para hoy"); return; } S.wodAlt[akOf(d)] = "extra"; S.expair[akOf(d)] = p; save(); if (SS) renderSess(); render({ keepScroll: true }); toast("Extra para los músculos que van por detrás"); },
