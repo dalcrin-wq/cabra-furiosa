@@ -517,6 +517,10 @@ nav.tabs button{transition:color .2s}
 
 .wcfg{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;margin:10px 0 4px;padding:10px 12px;border-radius:var(--r2);background:var(--p2);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--vis) 45%,transparent);font-weight:700;font-size:15px;text-align:left}
 .wcfg span{font-size:12.5px;font-weight:600;color:var(--vis)}
+
+.dlchip{display:block;width:100%;margin-top:10px;padding:10px 12px;border-radius:var(--r2);background:var(--p2);font-size:14px;font-weight:600;color:var(--mut);text-align:center;box-shadow:inset 0 0 0 1.5px var(--line)}
+.dlchip span{color:var(--vis)}
+.dlchip.on{color:var(--txt);background:color-mix(in srgb,var(--mid) 16%,var(--p2));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--mid) 60%,transparent)}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 </head>
@@ -548,22 +552,22 @@ const PH_EL=[
 {id:1,name:"FASE 1 · CIMIENTOS",weeks:[1,12],color:"#f5a623",
  goal:"Instalar el hábito, técnica limpia y base aeróbica. Aquí no se busca héroe: se busca soldado constante.",
  fuerza:"3 series de trabajo por ejercicio principal, deja 2-3 reps en la recámara (RIR 2-3). Aprende los gestos.",
- detalle:"Semanas 1-4: volumen moderado. Semanas 5-8: +2,5 kg en básicos si las reps salen limpias. Semanas 9-11: sube otra vez. Semana 12: descarga (todo al 60%) y test de marcas.",
+ detalle:"Semanas 1-4: volumen moderado. Semanas 5-8: +2,5 kg en básicos si las reps salen limpias. Semanas 9-11: sube otra vez. Semana 12: descarga (todo al 60%) y test de marcas. Descargas: semanas 6 y 12 (y cuando el cuerpo lo pida, con un toque en Semana).",
  progresion:[["Sem 1-4","Aprender técnica, RIR 3","Rodaje 30-35'"],["Sem 5-8","+2,5 kg básicos, RIR 2","Rodaje 35-40'"],["Sem 9-11","+2,5 kg más, RIR 1-2","Rodaje 40'"],["Sem 12","Descarga + test","Suave"]]},
 {id:2,name:"FASE 2 · CONSTRUCCIÓN",weeks:[13,26],color:"#ff6b35",
  goal:"Hipertrofia: poner carne en el armazón. Más volumen, más series, comer proteína como si fuera tu oficio.",
  fuerza:"4 series por básico, RIR 1-2. Accesorios al fallo técnico (cuando la forma se rompe, se acabó).",
- detalle:"Un rodaje se convierte en fartlek. Las cuestas pasan a 10 repeticiones. Si compras la airbike, entra en el WOD. Rotación de básicos: semanas impares, front squat (día A, solo si lo activas en Progreso › Datos) y press inclinado (día B); semanas pares, peso muerto pesado el día C (sin hip thrust cargado ese día). Semana 26: descarga y test.",
+ detalle:"Un rodaje se convierte en fartlek. Las cuestas pasan a 10 repeticiones. Si compras la airbike, entra en el WOD. Rotación de básicos: semanas impares, front squat (día A, solo si lo activas en Progreso › Datos) y press inclinado (día B); semanas pares, peso muerto pesado el día C (sin hip thrust cargado ese día). Semana 26: descarga y test. Descargas: semanas 19 y 26 (y cuando el cuerpo lo pida, con un toque en Semana).",
  progresion:[["Sem 13-17","4×8 básicos","Rodaje + fartlek"],["Sem 18-22","4×6-8, más peso","Fartlek 10×1'/2'"],["Sem 23-25","Pico de volumen","Cuestas ×10"],["Sem 26","Descarga + test","Suave"]]},
 {id:3,name:"FASE 3 · POTENCIA",weeks:[27,40],color:"#e11d48",
  goal:"Convertir el músculo nuevo en fuerza bruta y potencia. Pesos serios, pocas reps, descansos largos.",
  fuerza:"Básicos 5×3-5 con descansos de 2-3'. Swings y saltos como trabajo explosivo.",
- detalle:"El trail por montaña sustituye a las cuestas algunas semanas (60-90' andar/correr). El peso muerto se convierte en el protagonista del día C (5×3-5), con el hip thrust bajando a volumen moderado. WOD más corto y violento. Semana 40: descarga y test.",
+ detalle:"El trail por montaña sustituye a las cuestas algunas semanas (60-90' andar/correr). El peso muerto se convierte en el protagonista del día C (5×3-5), con el hip thrust bajando a volumen moderado. WOD más corto y violento. Semana 40: descarga y test. Descargas: semanas 33 y 40 (y cuando el cuerpo lo pida, con un toque en Semana).",
  progresion:[["Sem 27-31","5×5 básicos","Trail o cuestas"],["Sem 32-36","5×3, +5%","Trail 60-90'"],["Sem 37-39","3×3 pesado","Fartlek corto"],["Sem 40","Descarga + test","Suave"]]},
 {id:4,name:"FASE 4 · AFILADO",weeks:[41,52],color:"#4ade80",
  goal:"Definición: recorte calórico leve (~300 kcal), densidad de trabajo alta. Aquí sale a la luz lo construido.",
  fuerza:"Mantén cargas (eso protege el músculo), recorta volumen un 20%. Circuitos metabólicos más largos.",
- detalle:"Déficit suave. Peso objetivo: acariciar los 77-79 kg. Airbike protagonista. Semana 52: test final y foto.",
+ detalle:"Déficit suave. Peso objetivo: acariciar los 77-79 kg. Airbike protagonista. Semana 52: test final y foto. Descargas: semanas 46 y 52 (y cuando el cuerpo lo pida, con un toque en Semana).",
  progresion:[["Sem 41-45","Mantén cargas, -20% vol","2 rodajes + fartlek"],["Sem 46-49","Densidad alta","Cuestas + trail"],["Sem 50-51","Pico de definición","Airbike fuerte"],["Sem 52","Test final","Suave"]]}
 ];
 const SE_EL={
@@ -1075,7 +1079,7 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&a
 let S = null;
 function blank() {
   return { v: 3, startDate: null, done: {}, energy: {}, body: [], hist: {}, rm: {}, km: {}, swap: {}, exswap: {}, exadd: {}, wodDone: {}, wodRoll: {},
-    wodAlt: {}, expair: {}, exRoll: {}, mat: {}, free: {}, guardOv: {}, diary: {}, badges: {}, rescue: {}, dbl: {}, wodCustom: {}, wodPref: {}, rpe: {}, pain: {}, painAM: {}, zone: "", reviews: {}, food: {}, goal: { rate: -0.5 }, age: 45, h: 182, lastExport: null, migrated: null };
+    wodAlt: {}, expair: {}, exRoll: {}, mat: {}, free: {}, guardOv: {}, diary: {}, badges: {}, rescue: {}, dbl: {}, wodCustom: {}, wodPref: {}, dlOn: {}, rpe: {}, pain: {}, painAM: {}, zone: "", reviews: {}, food: {}, goal: { rate: -0.5 }, age: 45, h: 182, lastExport: null, migrated: null };
 }
 function load() {
   let raw = null;
@@ -1141,7 +1145,17 @@ function planWeekOf(k) {                       // semana del plan (1-52, se reci
 }
 const currentWeek = () => planWeekOf(today()).w;
 const phaseOf = w => PH_EL.find(p => w >= p.weeks[0] && w <= p.weeks[1]) || PH_EL[0];
-const isDeload = w => [12, 26, 40, 52].includes(w);
+/* Descargas: una semana cada ~6 (consenso Delphi de Bell et al. 2023: cada 4-8 semanas, ~1 semana, recortando
+   sobre todo volumen). Además, a demanda: S.dlOn["vuelta·semana"] = true fuerza una, false la quita. Si haces
+   una a demanda, la programada de las 2 semanas siguientes se salta para no encadenar dos. */
+const DL_FIXED = [6, 12, 19, 26, 33, 40, 46, 52];
+const dlKey = w => (S.startDate ? planWeekOf(today()).cycle : 1) + "·" + w;
+function isDeload(w) {
+  const on = S.dlOn || {}, v = on[dlKey(w)];
+  if (v === true) return true; if (v === false) return false;
+  if (!DL_FIXED.includes(w)) return false;
+  return !(on[dlKey(w - 1)] === true || on[dlKey(w - 2)] === true);
+}
 const isGuardia = k => { const ov = S.guardOv[k]; if (ov != null) return ov === 1; return GUARDIAS_EL.includes(k); };
 const parkType = t => ({ A: "AP", B: "BP", W: "WP", G: "GP" })[t] || t;
 const isX = v => typeof v === "string" && v[0] === "X";
@@ -1520,6 +1534,7 @@ function buildDay(dk, k2) {                         // k2: segunda sesión del d
   let ex = pt.ex;
   if (isDeload(w) && ["A", "B", "G"].includes(key)) { const c = ex.findIndex(e => /^💥|^💗|WOD FINAL/.test(e[0])); if (c > 0) ex = ex.slice(0, c); }
   ex = weekShape(key, ex, mode, isDeload(w));
+  if (isDeload(w) && typeOf(key) === "f") ex = ex.map(e => e[2] && /^\d+×/.test(e[1]) ? [e[0], e[1].replace(/^(\d+)×/, (m, n) => Math.min(+n, 2) + "×"), ...e.slice(2)] : e);   // descarga: todo a 2 series, también accesorios
   // quitar los WOD estáticos: los sustituye el generador
   let wod = null, extra = null;
   const wi = ex.findIndex(e => /🅲 WOD FINAL/.test(e[0]));
@@ -2237,10 +2252,16 @@ function vSemana() {
     <button class="nbtn" data-act="week" data-d="1" aria-label="Semana siguiente">›</button>
   </div>
   <div class="days" id="days">${days}</div>
+  ${dlChipHTML(mon)}
   ${weekOff !== 0 ? `<button class="btn line sm" data-act="week" data-d="0" style="margin:10px auto 0;display:flex">Volver a hoy</button>` : ""}
   <div id="dayHost" style="margin-top:14px">${dayPanelHTML(dk)}</div>
   ${volumeHTML(mon)}
   ${wk}`;
+}
+function dlChipHTML(mon) {
+  if (!S.startDate || addDays(mon, 6) < today()) return "";
+  const pw = planWeekOf(mon); if (pw.pre) return ""; const w = pw.w, dl = isDeload(w), fixed = DL_FIXED.includes(w);
+  return `<button class="dlchip ${dl ? "on" : ""}" data-act="dlTog" data-w="${w}">${dl ? "😮‍💨 Semana de descarga" + (fixed && S.dlOn[dlKey(w)] !== true ? " (programada)" : "") + " · <span>quitar</span>" : "😮‍💨 ¿Cansado? <span>Haz de esta semana una descarga</span>"}</button>`;
 }
 function dayPanelHTML(dk) {
   const day = buildDay(dk), t = today(), past = dk < t, fut = dk > t, done = !!S.done[dk];
@@ -2452,6 +2473,9 @@ function checksHTML() {
   if (S.startDate && (dowOf(t) >= 5 || S.rescue[t]) && (low.length || S.rescue[t])) h += `<button class="panel" data-act="rescue" data-dk="${t}" style="display:block;width:100%;text-align:left;border-left:4px solid var(--ok)"><div style="font-weight:700">🧹 ${S.rescue[t] ? "Barrido de hoy" : low.length + (low.length === 1 ? " barra se queda" : " barras se quedan") + " por debajo de 10"}</div><div class="small mut">${S.rescue[t] ? "Toca para continuar." : low.join(", ") + ". Una sesión corta de barrido y a la pista de baile."}</div></button>`;
   const mon0 = mondayOf(t), dkey = dayKey(t), wodToday = ["B", "BP", "XB", "WB"].includes(dkey) || (S.dbl[t] && S.dbl[t].k === "WB");
   if (S.startDate && dowOf(t) >= 3 && !wodWeekDone(mon0) && !wodToday) h += `<button class="panel" data-act="wodToday" data-dk="${t}" style="display:block;width:100%;text-align:left;border-left:4px solid var(--ember)"><div style="font-weight:700">🧯 WOD bombero pendiente esta semana</div><div class="small mut">12-15 minutos de cargar, arrastrar y subir a ritmo sostenido. Toca para añadirlo hoy como 2ª sesión.</div></button>`;
+  const wNow = currentWeek(), rpe7 = [...Array(7).keys()].map(i => S.rpe[addDays(t, -1 - i)]).filter(v => v != null);
+  const tiredSig = fatigueSignal() || (rpe7.length >= 2 && rpe7.reduce((a, b) => a + b, 0) / rpe7.length >= 8);
+  if (S.startDate && !isDeload(wNow) && tiredSig) h += `<button class="panel" data-act="dlTog" data-w="${wNow}" style="display:block;width:100%;text-align:left;border-left:4px solid var(--mid)"><div style="font-weight:700">😮‍💨 Señales de fatiga</div><div class="small mut">Las marcas bajan o las sesiones se sienten muy duras. Toca para convertir esta semana en descarga: 2 series, cargas al 60% y sin WOD.</div></button>`;
   if (!hasW) h += `<div class="panel"><div class="chk"><div style="flex:1"><div style="font-weight:700">Pésate</div><div class="tiny mut">En ayunas, tras el baño. Un número al día y la tendencia hace el resto.</div></div><input id="qW" class="inp" inputmode="decimal" placeholder="kg" style="max-width:84px"><button class="btn sm" data-act="quickW">OK</button></div></div>`;
   return h;
 }
@@ -3201,6 +3225,8 @@ const ACT = {
   swCd: () => { S.swCd = !S.swCd; save(); renderSess(); toast(S.swCd ? "Salida con cuenta atrás: 3, 2, 1… ¡ya!" : "Salida al tocar"); },
   swManual: () => { SW.manual = !SW.manual; renderSess(); },
   ptManual: () => { PT.manual = !PT.manual; renderSess(); },
+  dlTog: d => { const w = +d.w, k = dlKey(w), dl = isDeload(w); S.dlOn[k] = !dl; if (!dl && !DL_FIXED.includes(w)) { } save(); render({ keepScroll: true });
+    toast(!dl ? "Semana " + w + " de descarga: 2 series por ejercicio, cargas al 60%, sin WOD. Volverás con más." : "Descarga quitada: semana normal"); },
   setEdit: d => setEditSheet(d.id, d.dk, +d.i, d.from),
   seTech: (d, el) => { const off = el.classList.toggle("off"); el.textContent = off ? "✗ Técnica o recorrido roto" : "✓ Técnica y recorrido completo"; },
   setEditOk: d => {
