@@ -163,6 +163,8 @@ p+p{margin-top:8px}
 @keyframes pulse{50%{filter:brightness(1.25)}}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--mut);margin-top:10px}
 .legend.lets{margin-top:6px}
+.cell.dlw::before{content:"";position:absolute;left:3px;right:3px;bottom:2px;height:3px;border-radius:2px;background:#c9a7ff;box-shadow:0 0 6px rgba(201,167,255,.7);pointer-events:none}
+.dltag{display:inline-block;vertical-align:3px;margin-left:6px;padding:2px 8px;border-radius:99px;font-family:var(--body);font-size:12px;font-weight:700;color:#1a1030;background:#c9a7ff}
 .legend.lets b{font-family:var(--disp);font-weight:900;font-size:14px;margin-right:2px}
 .cell .lt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--disp);font-weight:900;font-size:15px;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,.7)}
 .cell .lt.dim{color:#8391a7;font-size:15px}
@@ -1150,6 +1152,14 @@ const phaseOf = w => PH_EL.find(p => w >= p.weeks[0] && w <= p.weeks[1]) || PH_E
    una a demanda, la programada de las 2 semanas siguientes se salta para no encadenar dos. */
 const DL_FIXED = [6, 12, 19, 26, 33, 40, 46, 52];
 const dlKey = w => (S.startDate ? planWeekOf(today()).cycle : 1) + "·" + w;
+/* ¿Esa semana (por su lunes) fue/es de descarga? Respeta la historia: antes del cambio de calendario
+   (16-nov-2026) las programadas eran solo 12, 26, 40 y 52; las hechas a mano cuentan siempre. */
+const DL_V2 = "2026-11-16";
+function weekIsDeload(mon) {
+  if (!S.startDate) return false; const pw = planWeekOf(mon); if (pw.pre) return false;
+  const v = (S.dlOn || {})[dlKey(pw.w)]; if (v === true || v === false) return v;
+  return mon < DL_V2 ? [12, 26, 40, 52].includes(pw.w) : isDeload(pw.w);
+}
 function isDeload(w) {
   const on = S.dlOn || {}, v = on[dlKey(w)];
   if (v === true) return true; if (v === false) return false;
@@ -2106,7 +2116,7 @@ function vHoy() {
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px"><h2 style="margin:0">Constancia</h2><button class="link small" data-act="go" data-v="semana">Ver semana</button></div>
     ${cmapHTML()}
-    <div class="legend"><span><i style="background:var(--ok)"></i>A tope</span><span><i style="background:var(--mid)"></i>A medias</span><span><i style="background:var(--low)"></i>Lo justito</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--bad)"></i>Cero</span><span><i style="box-shadow:0 0 0 2px var(--vis)"></i>Guardia</span></div>
+    <div class="legend"><span><i style="background:var(--ok)"></i>A tope</span><span><i style="background:var(--mid)"></i>A medias</span><span><i style="background:transparent;box-shadow:inset 0 -3px 0 #c9a7ff"></i>Descarga</span><span><i style="background:var(--low)"></i>Lo justito</span><span><i style="box-shadow:inset 0 0 0 1.5px var(--bad)"></i>Cero</span><span><i style="box-shadow:0 0 0 2px var(--vis)"></i>Guardia</span></div>
     <div class="legend lets">${LET_LEG.map(([l, n]) => `<span><b style="color:${letCol(l)}">${l}</b> ${n}</span>`).join("")}</div>
   </div>
   ${raceHTML(w)}
@@ -2188,7 +2198,7 @@ function cmapHTML() {
   let h = `<div class="cmap">${DOW.map(d => `<div class="hd">${d}</div>`).join("")}`;
   for (let i = 0; i < 56; i++) {
     const k = addDays(start, i), st = dayStatus(k), g = isGuardia(k) && k >= (S.startDate || k);
-    let cls = "cell " + st, style = "", inner = "";
+    let cls = "cell " + st + (weekIsDeload(addDays(start, i - i % 7)) ? " dlw" : ""), style = "", inner = "";
     if (st === "done") { const ec = EN_COL[dayEn(k)]; style = `background:color-mix(in srgb,${ec} 30%,#121a28);box-shadow:inset 0 0 0 1.5px color-mix(in srgb,${ec} 85%,transparent)`;
       const d2 = S.dbl[k], solo2 = d2 && d2.done && !(S.done[k] && !isRecov(k)), L = letterOf(solo2 ? d2.k : dayKey(k));
       inner = `<i class="lt" style="color:${letCol(L)}">${L}</i>${d2 && d2.done && !solo2 ? `<b class="l2" style="color:${letCol(letterOf(d2.k))}">${letterOf(d2.k)}</b>` : ""}`; if (run >= 3 && streakSet.has(k)) cls += " streak"; }
@@ -2234,7 +2244,7 @@ function vSemana() {
   const t = today(), mon = addDays(mondayOf(t), weekOff * 7);
   if (selDay == null) selDay = weekOff === 0 ? dowOf(t) : 0;
   const dk = addDays(mon, selDay), pw = planWeekOf(mon);
-  const lbl = !S.startDate ? "Sin empezar" : pw.pre ? "Antes del plan" : "Semana " + pw.w;
+  const lbl = (!S.startDate ? "Sin empezar" : pw.pre ? "Antes del plan" : "Semana " + pw.w) + (weekIsDeload(mon) ? ` <span class="dltag">😮‍💨 Descarga</span>` : "");
   const rel = weekOff === 0 ? "esta semana" : weekOff === -1 ? "la pasada" : weekOff === 1 ? "la que viene" : (weekOff < 0 ? "hace " + (-weekOff) : "dentro de " + weekOff) + " semanas";
   let days = "";
   for (let i = 0; i < 7; i++) {
