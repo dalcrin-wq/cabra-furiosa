@@ -1645,6 +1645,8 @@ const exItems = day => day.items.filter(i => i.t === "e");
 
 /* ── Historial y marcas ── */
 const recOf = (id, dk) => (S.hist[id] || []).find(r => r.d === dk) || null;
+/* Última sesión DE TRABAJO: las de semanas de descarga (60%) no sirven de referencia para progresar. */
+const lastWork = (id, dk) => { const h = S.hist[id] || []; for (let i = h.length - 1; i >= 0; i--) if (h[i].d < dk && h[i].sets.length && !weekIsDeload(mondayOf(h[i].d))) return h[i]; return lastBefore(id, dk); };
 const lastBefore = (id, dk) => { const h = S.hist[id] || []; for (let i = h.length - 1; i >= 0; i--) if (h[i].d < dk && h[i].sets.length) return h[i]; return null; };
 const e1rm = (kg, reps, rirCls) => kg * (1 + Math.min(reps + RIR_EST[rirCls == null ? 1 : rirCls], 12) / 30);   // Epley ajustado por RIR (Helms / Zourdos)
 const techOk = (k, s) => (k === "w" ? s[3] : k === "bw" || k === "t" ? s[2] : 1) !== 0;   // serie con técnica o recorrido roto: no cuenta para marcas ni progresión
@@ -1672,8 +1674,9 @@ const rirClassFor = rir => rir <= 0.5 ? 0 : rir <= 2.5 ? 1 : 2;
    se recalcula desde tu 1RM estimado. Dos sesiones por debajo del rango → un paso atrás. */
 function recommend(it, dk) {
   const info = CAT_BY[it.id] || exInfo(it.name, it.scheme), k = it.k, sc = parseScheme(it.scheme);
-  const last = lastBefore(it.id, dk);
+  const last = k === "s" ? lastBefore(it.id, dk) : lastWork(it.id, dk);
   const out = { kg: null, reps: null, sec: null, txt: "", why: "", last };
+  const backFromDl = !sc.deload && weekIsDeload(addDays(mondayOf(dk), -7)) && last && !weekIsDeload(mondayOf(last.d));
   if (k === "s") {
     const b = bestEver(it.id);
     out.sec = last ? recBest(last).set[0] : null;
@@ -1705,6 +1708,9 @@ function recommend(it, dk) {
   const inc = info.inc || 2;
   const failN = atTop.filter(s => s[2] === 0).length, wantsMargin = sc.rir >= 1.5;
   if (sc.deload) { out.kg = roundTo(topKg * 0.6, inc); out.reps = 5; out.txt = fmtNum(out.kg) + " × 5"; out.why = "Descarga: el 60% de tu peso de trabajo. Suena a poco; es donde el cuerpo cobra."; return out; }
+  // 0) vuelta de la descarga: mismo peso de trabajo que antes, para reengrasar; la progresión sigue la próxima
+  if (backFromDl) { out.kg = topKg; out.reps = sc.lo ? Math.min(sc.hi || minR, Math.max(sc.lo, minR)) : minR; out.txt = fmtNum(out.kg) + " × " + out.reps;
+    out.why = "Vuelta de la descarga: retomas tu peso de trabajo de antes (" + fmtNum(topKg) + " kg). Una semana suave no quita fuerza; la próxima sesión ya toca progresar."; out.pct = Math.round(100 * out.kg / (e1 || 1)); return out; }
   // 1) técnica rota con el peso más alto → −5 % y se reconquista con recorrido completo
   if (last.sets.some(s => !techOk(k, s) && s[0] >= allTop)) {
     out.kg = roundTo(allTop * 0.95, inc); out.reps = sc.lo || minR;
@@ -1720,7 +1726,7 @@ function recommend(it, dk) {
   else if (minR >= sc.hi) { out.kg = topKg; out.reps = sc.hi; out.why = "Llegaste arriba, pero al fallo. Una sesión más aquí: sube cuando el tope salga con 1-2 en la recámara."; }
   else if (atTop.every(s => s[2] === 2) && minR >= sc.lo + 1) { out.kg = roundTo(topKg + inc, inc); out.reps = sc.lo; out.why = "Todas las series lejos del fallo y dentro del rango: te sobraba. Sube."; }
   else {
-    const prev = (S.hist[it.id] || []).filter(r => r.d < last.d && r.sets.length).slice(-1)[0];
+    const prev = (S.hist[it.id] || []).filter(r => r.d < last.d && r.sets.length && !weekIsDeload(mondayOf(r.d))).slice(-1)[0];
     const prevLow = prev && Math.max(...prev.sets.filter(s => s[0] === Math.max(...prev.sets.map(x => x[0]))).map(s => s[1])) < sc.lo;
     if (minR < sc.lo && (prevLow || (wantsMargin && failN))) { out.kg = roundTo(topKg - inc, inc); out.reps = sc.lo; out.why = prevLow ? "Dos sesiones por debajo del rango: un paso atrás para coger carrerilla. Esto es táctica, no derrota." : "Por debajo del rango y al fallo: el peso va por delante de ti. Un paso atrás y a construir."; }
     else if (wantsMargin && failN > atTop.length / 2) { out.kg = topKg; out.reps = minR; out.why = "El plan pide dejar " + (sc.rir >= 2.5 ? "2-3" : "1-2") + " en la recámara y fuiste al fallo: mismas reps hasta que salgan con margen. Progresar es acumular, no sufrir."; }
